@@ -6,6 +6,8 @@ Attachment Lens is a free, open-source plugin for [Obsidian](https://obsidian.md
 
 > **Before publishing:** the author is still the placeholder `REPLACE_WITH_AUTHOR` in `manifest.json`, `package.json` and `LICENSE`. See [docs/SUBMISSION.md](docs/SUBMISSION.md).
 
+![Attachment Lens showing an attachment and the places it is used](docs/screenshots/C-attachment-details-light.png)
+
 ## What it does
 
 - Lists every attachment in the vault (images, PDFs, audio, video, documents, archives and any other file that isn't a note, Canvas board or base), with search, filters by type and status, and sorting.
@@ -56,6 +58,8 @@ A broken link counts as an attachment reference when its target has a known atta
 
 **Not covered:** HTML tags such as `<img src>`, Dataview and Templater code, CSS snippets, plugin file formats such as compressed Excalidraw drawings, nested property objects, base blocks inside Canvas text cards or callouts, and anything a Bases formula computes at runtime. That's why an attachment without references is described as **No references detected in supported sources**, not as unused. When a source couldn't be read completely (invalid JSON, invalid YAML, expressions that weren't evaluated, notes Obsidian hadn't indexed yet), the panel says so and lists the files under **Coverage details**.
 
+![Choosing a replacement for a missing image](docs/screenshots/D-broken-with-suggestions-dark.png)
+
 ## How repairs work
 
 Suggestions are ranked by file name, extension and folder similarity, and each one lists its reasons ("Same name, .jpg instead of .jpeg", "Near the source", "Different format: WebP"). Nothing is selected for you, and a similar name doesn't mean it's the right file. You can also search all attachments.
@@ -69,6 +73,8 @@ When you choose **Apply repair**:
 3. An undo point is saved to the plugin's data before anything is written.
 4. The change is written with Obsidian's atomic `Vault.process`, which compares the text one last time.
 5. The file is read back and must contain exactly the expected result, and the new link is checked against Obsidian's index.
+
+![The review dialog with the exact change](docs/screenshots/E-review-light.png)
 
 If the file changed after the preview, nothing is written and you're asked to refresh the preview. Uncertain references need one extra confirmation.
 

@@ -177,6 +177,8 @@ export class AttachmentLensView extends ItemView {
 		this.showCoverage = false;
 		this.detailsOpen = true;
 		this.render(true);
+		// In a narrow panel, go straight to the file's details.
+		this.applyNarrow();
 		if (this.plugin.controller.hasResults && !this.plugin.controller.index.getAttachment(path)) {
 			new Notice(`${basename(path)} isn't in the results. It may be in an excluded folder.`);
 		}

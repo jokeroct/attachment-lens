@@ -575,11 +575,11 @@ module.exports = class AttachmentLensHarness extends Plugin {
 		const undoResults = [];
 		const lens = this.lens;
 		const controller = lens.controller;
-		// One clean main-area tab with the panel, nothing else open
-		this.app.workspace.iterateAllLeaves((leaf) => {
-			if (leaf.getRoot() === this.app.workspace.rootSplit && leaf.view?.getViewType() !== VIEW_TYPE) leaf.detach();
-		});
+		// One clean main-area tab with the panel. Open it first, so a tab group always remains.
 		const view = await lens.activateView();
+		this.app.workspace.iterateAllLeaves((leaf) => {
+			if (leaf.getRoot() === this.app.workspace.rootSplit && leaf !== view.leaf) leaf.detach();
+		});
 		await sleep(400);
 		const click = async (selector) => {
 			const el = view.contentEl.querySelector(selector) ?? document.querySelector(selector);
