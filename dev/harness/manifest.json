@@ -1,0 +1,9 @@
+{
+  "id": "attachment-lens-dev-harness",
+  "name": "Attachment Lens – dev test harness",
+  "version": "0.0.1",
+  "minAppVersion": "1.14.0",
+  "description": "Test vault only. Drives Attachment Lens inside Obsidian and records what each check found.",
+  "author": "",
+  "isDesktopOnly": true
+}
