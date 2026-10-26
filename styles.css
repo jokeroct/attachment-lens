@@ -982,3 +982,20 @@ button.al-chip.is-active {
 	width: 14px;
 	height: 14px;
 }
+
+/* Settings: Ko-fi button */
+
+.al-kofi-button {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--size-2-3);
+}
+
+.al-kofi-button .al-kofi-icon {
+	display: inline-flex;
+}
+
+.al-kofi-button .al-kofi-icon svg {
+	width: var(--icon-s);
+	height: var(--icon-s);
+}

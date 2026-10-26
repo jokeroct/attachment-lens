@@ -20,7 +20,7 @@ export default defineConfig([
 			// The plugin's own name and Obsidian's feature names keep their capitals.
 			"obsidianmd/ui/sentence-case": [
 				"warn",
-				{ brands: ["Attachment Lens", "Obsidian", "Canvas", "Markdown", "Excalidraw", "Dataview", "Templater", "Lucide", "Windows"], acronyms: ["PDF", "JSON", "YAML", "HTML", "CSS", "URL", "SVG"] },
+				{ brands: ["Attachment Lens", "Obsidian", "Canvas", "Markdown", "Excalidraw", "Dataview", "Templater", "Lucide", "Windows", "Ko-fi"], acronyms: ["PDF", "JSON", "YAML", "HTML", "CSS", "URL", "SVG"] },
 			],
 		},
 	},

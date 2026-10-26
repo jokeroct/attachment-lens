@@ -1,10 +1,11 @@
 {
   "id": "attachment-lens",
   "name": "Attachment Lens",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "minAppVersion": "1.14.0",
   "description": "See where attachments are used, find broken attachment links, and repair them one at a time after reviewing the exact change.",
   "author": "MON.D.SAMA",
   "authorUrl": "https://github.com/jokeroct",
+  "fundingUrl": "https://ko-fi.com/mdsama",
   "isDesktopOnly": true
 }

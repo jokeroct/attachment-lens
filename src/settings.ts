@@ -1,5 +1,8 @@
-import { PluginSettingTab, type App, type SettingDefinitionItem } from "obsidian";
+import { PluginSettingTab, setIcon, type App, type SettingDefinitionItem } from "obsidian";
 import type AttachmentLensPlugin from "./main";
+
+/** The author's Ko-fi page, also the manifest's fundingUrl. */
+export const KOFI_URL = "https://ko-fi.com/mdsama";
 
 export interface Settings {
 	/** Folders to skip, one per line */
@@ -56,6 +59,24 @@ export class AttachmentLensSettingTab extends PluginSettingTab {
 				name: "Scan when the panel opens",
 				desc: "Results are kept in memory only. With this on, opening the panel after restarting Obsidian scans again automatically.",
 				control: { type: "toggle", key: "scanOnOpen" },
+			},
+			{
+				type: "group",
+				heading: "Support",
+				items: [
+					{
+						name: "Support Attachment Lens",
+						desc: "Attachment Lens is free. If it helps you, you can support its development on Ko-fi.",
+						render: (setting) => {
+							setting.addButton((button) => {
+								button.setButtonText("Support me on Ko-fi").onClick(() => window.open(KOFI_URL));
+								// A button holds an icon or text, not both, so the icon goes in beside the text.
+								button.buttonEl.addClass("al-kofi-button");
+								setIcon(button.buttonEl.createSpan({ cls: "al-kofi-icon", prepend: true }), "coffee");
+							});
+						},
+					},
+				],
 			},
 		];
 	}

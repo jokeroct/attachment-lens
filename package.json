@@ -1,10 +1,15 @@
 {
   "name": "attachment-lens",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
   "description": "See where attachments are used, find broken attachment links, and repair them one reference at a time after reviewing the exact change.",
   "author": "MON.D.SAMA",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jokeroct/attachment-lens.git"
+  },
+  "homepage": "https://github.com/jokeroct/attachment-lens#readme",
   "main": "main.js",
   "scripts": {
     "dev": "node esbuild.config.mjs",
