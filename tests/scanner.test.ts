@@ -35,10 +35,10 @@ describe("scanMarkdown", () => {
 
 	it("reads reference definitions and counts their uses", () => {
 		const scan = scanMarkdown(fixture("Links/Reference style.md"));
-		const byLabel = Object.fromEntries(scan.definitions.map((d) => [d.label, d]));
-		expect(byLabel.fig1).toMatchObject({ linkpath: "../Research/Figures/fig-1.png", usages: 3, embed: true });
-		expect(byLabel.budget).toMatchObject({ linkpath: "../Finance/budget-2025.xlsx", usages: 1, embed: false });
-		expect(byLabel.gone).toMatchObject({ usages: 0 });
+		const byLabel = new Map(scan.definitions.map((d) => [d.label ?? "", d]));
+		expect(byLabel.get("fig1")).toMatchObject({ linkpath: "../Research/Figures/fig-1.png", usages: 3, embed: true });
+		expect(byLabel.get("budget")).toMatchObject({ linkpath: "../Finance/budget-2025.xlsx", usages: 1, embed: false });
+		expect(byLabel.get("gone")).toMatchObject({ usages: 0 });
 		expect(scan.links).toEqual([]);
 	});
 

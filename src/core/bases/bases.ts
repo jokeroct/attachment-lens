@@ -141,7 +141,7 @@ export function readBase(yamlText: string, options: BaseReadOptions): BaseRead {
 		issues.push({
 			kind: "dynamic",
 			message: `${dynamic.length} expression${dynamic.length === 1 ? " is" : "s are"} computed at runtime and ${dynamic.length === 1 ? "wasn't" : "weren't"} evaluated.`,
-			detail: dynamic[0] as string,
+			detail: dynamic[0],
 		});
 	}
 	return { occurrences, issues };
