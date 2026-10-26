@@ -6,6 +6,7 @@
 
 <p align="center">
   <a href="https://github.com/jokeroct/attachment-lens/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/jokeroct/attachment-lens?label=release&color=7852ee"></a>
+  <a href="https://community.obsidian.md/plugins/attachment-lens"><img alt="Obsidian Community directory" src="https://img.shields.io/badge/Obsidian-Community%20plugin-7852ee?logo=obsidian&logoColor=white"></a>
   <img alt="Obsidian 1.14 or newer, desktop" src="https://img.shields.io/badge/Obsidian-1.14%2B%20desktop-7852ee?logo=obsidian&logoColor=white">
   <a href="LICENSE"><img alt="MIT license" src="https://img.shields.io/github/license/jokeroct/attachment-lens?color=555"></a>
 </p>
@@ -53,6 +54,10 @@
 ## Install
 
 ### From Obsidian
+
+The quickest way: open [Attachment Lens in the Community directory](https://community.obsidian.md/plugins/attachment-lens) and choose **Add to Obsidian**. Obsidian opens the plugin's page, where you choose **Install**, then **Enable**.
+
+Or from inside Obsidian:
 
 1. Open **Settings → Community plugins** and turn off **Restricted mode** if it's on.
 2. Choose **Browse**, search for **Attachment Lens**, and choose **Install**.

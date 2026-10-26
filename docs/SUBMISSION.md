@@ -2,6 +2,8 @@
 
 How Attachment Lens is released, and how it gets into Obsidian's Community directory.
 
+**Status:** 1.0.0 is published and listed at [community.obsidian.md/plugins/attachment-lens](https://community.obsidian.md/plugins/attachment-lens). The automated review passed, with two recommendations about vault enumeration and clipboard access, which the plugin needs to list attachments and for its copy buttons.
+
 ## Releasing a version
 
 1. Set the new version with `npm version <patch|minor|major> --no-git-tag-version`. This updates `package.json`, `manifest.json` and `versions.json` through `scripts/version-bump.mjs`.
