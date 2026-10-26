@@ -16,9 +16,10 @@ describe("scanMarkdown", () => {
 		expect(text.slice(b?.pathStart, b?.pathEnd)).toBe("sub/b%20c.pdf");
 	});
 
-	it("skips code blocks, code spans, comments and escapes", () => {
+	it("skips code blocks, code spans and escapes, but not comments", () => {
 		expect(paths(fixture("Links/Code examples.md"))).toEqual([]);
-		expect(paths(fixture("Links/Comments.md"))).toEqual([]);
+		// Obsidian's index counts links in %% comments, so the scanner does too.
+		expect(paths(fixture("Links/Comments.md"))).toEqual(["site-backup-2023.zip"]);
 		expect(paths("``a `![[x.png]]` b`` and \\[\\[y.png\\]\\] and \\[n\\](z.png)")).toEqual([]);
 		expect(paths("Unclosed `![[x.png]] is literal")).toEqual(["x.png"]);
 	});

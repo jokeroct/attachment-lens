@@ -9,3 +9,6 @@ dist/
 
 # Plugin data written when testing by hand
 data.json
+
+# Native test results copied from the test vault
+.dev-results/

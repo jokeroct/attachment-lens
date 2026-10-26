@@ -1,5 +1,5 @@
 // Finds links in raw Markdown, for places Obsidian's metadata cache doesn't cover: Canvas text
-// cards and reference-style definitions. Code blocks, code spans and %% comments are skipped.
+// cards and reference-style definitions. Code blocks and code spans are skipped, as Obsidian does.
 import {
 	findClosingBracket,
 	normalizeLabel,
@@ -210,11 +210,7 @@ export function scanMarkdown(text: string, options: ScanOptions = {}): MarkdownS
 			i = close === -1 ? i + n : close;
 			continue;
 		}
-		if (ch === "%" && text[i + 1] === "%") {
-			const close = text.indexOf("%%", i + 2);
-			i = close === -1 ? i + 2 : close + 2;
-			continue;
-		}
+		// Links inside %% comments stay links: Obsidian's own index counts them too.
 		const embed = ch === "!";
 		const open = embed ? i + 1 : i;
 		if (text.startsWith("[[", open)) {

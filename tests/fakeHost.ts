@@ -44,9 +44,14 @@ export class FakeHost implements Host {
 		return host;
 	}
 
+	private waiters: { path: string; resolve: (cache: CachedMetadata | null) => void }[] = [];
+
 	setText(path: string, text: string): void {
 		this.files.set(path, { text, size: text.length, mtime: Date.now() });
 		this.caches.delete(path);
+		const ready = this.waiters.filter((w) => w.path === path);
+		this.waiters = this.waiters.filter((w) => w.path !== path);
+		for (const waiter of ready) waiter.resolve(this.getCache(path));
 	}
 
 	setBinary(path: string, size = 10): void {
@@ -146,8 +151,12 @@ export class FakeHost implements Host {
 		return this.openViews.has(path);
 	}
 
+	/** Like Obsidian: resolves when the note is next re-indexed, or with the current cache after a while. */
 	waitForCache(path: string): Promise<CachedMetadata | null> {
-		return Promise.resolve(this.getCache(path));
+		return new Promise((resolve) => {
+			this.waiters.push({ path, resolve });
+			setTimeout(() => resolve(this.getCache(path)), 50);
+		});
 	}
 
 	indexedNotes(): { indexed: number; total: number } {

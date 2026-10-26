@@ -1,5 +1,6 @@
 // The guarded repair: preview one change, re-check everything at the moment of writing, save the
 // undo point first, write atomically, then read the file back and confirm the link opens the file.
+import type { CachedMetadata } from "obsidian";
 import { codeBlockStarts } from "../core/extract";
 import { categoryOfPath, describeType } from "../core/fileTypes";
 import { fingerprint } from "../core/hash";
@@ -209,6 +210,8 @@ export class RepairService {
 		};
 		await this.store.set(record);
 
+		// Listen before writing: Obsidian can re-index the note before the write call returns.
+		const indexed = ref.sourceKind === "markdown" ? this.host.waitForCache(sourcePath, 3000) : Promise.resolve(null);
 		try {
 			await this.host.process(sourcePath, (data) => {
 				if (data !== plan.snapshot) throw new StaleSourceError("changed");
@@ -235,19 +238,20 @@ export class RepairService {
 		if (written !== plan.result) {
 			return { ok: false, kind: "unverified", message: `The file was written but doesn't contain the expected text. Open ${basename(sourcePath)} and check ${plan.place}.` };
 		}
-		const warning = await this.confirmResolution(plan);
+		const cache = await indexed;
+		const warning = this.confirmResolution(plan, cache);
 		const applied: RecoveryRecord = { ...record, state: "applied", appliedAt: this.now() };
 		await this.store.set(applied);
+		// Notes are re-read after Obsidian has indexed the new text, so the list shows the repair at once.
 		await this.controller.refreshSource(sourcePath);
 		return { ok: true, record: applied, warning };
 	}
 
 	/** After writing, checks the new link the way Obsidian reads it. Returns a warning or null. */
-	private async confirmResolution(plan: RepairPlan): Promise<string | null> {
+	private confirmResolution(plan: RepairPlan, cache: CachedMetadata | null): string | null {
 		const { ref, sourcePath, targetPath } = plan;
 		let opens: string | null;
 		if (ref.sourceKind === "markdown" && ref.place.type === "body" && ref.form !== "refdef") {
-			const cache = await this.host.waitForCache(sourcePath, 3000);
 			const items = [...(cache?.links ?? []), ...(cache?.embeds ?? [])];
 			const item = items.find((i) => i.position.start.offset === plan.occurrence.start);
 			if (!item) return "The repaired link was written, but Obsidian's index didn't report it yet. Rescan to confirm it.";
@@ -285,6 +289,7 @@ export class RepairService {
 		if (kind === "markdown" ? this.host.openEditorTexts(record.sourcePath).some((t) => t !== current) : this.host.isOpenInFileView(record.sourcePath)) {
 			return { ok: false, kind: "blocked", message: kind === "markdown" ? UNSAVED : `Close ${basename(record.sourcePath)} before undoing.` };
 		}
+		const indexed = kind === "markdown" ? this.host.waitForCache(record.sourcePath, 3000) : Promise.resolve(null);
 		try {
 			await this.host.process(record.sourcePath, (data) => {
 				if (fingerprint(data) !== record.afterHash) throw new StaleSourceError("changed");
@@ -296,6 +301,7 @@ export class RepairService {
 		}
 		const after = await this.host.read(record.sourcePath).catch(() => null);
 		if (after !== undo.text) return { ok: false, kind: "unverified", message: `The undo was written but the file doesn't match the original. Open ${basename(record.sourcePath)} and check it.` };
+		await indexed;
 		await this.store.set(null);
 		await this.controller.refreshSource(record.sourcePath);
 		return { ok: true, record };

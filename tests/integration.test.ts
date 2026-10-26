@@ -30,8 +30,8 @@ describe("full scan of the fixture vault", () => {
 		const { controller } = await scanned();
 		expect(controller.state.status).toBe("ready");
 		const counts = controller.index.counts();
-		expect(counts).toMatchObject({ attachments: 24, broken: 18, missing: 14, uncertain: 5, unreferenced: 9 });
-		expect(controller.index.referenceCount()).toBe(63);
+		expect(counts).toMatchObject({ attachments: 24, broken: 18, missing: 14, uncertain: 5, unreferenced: 8 });
+		expect(controller.index.referenceCount()).toBe(64);
 		expect(controller.index.externalCount()).toBe(6);
 
 		const missing = controller.index.query("broken", "all", "", "name").map((i) => [i.name, i.refs.length]);
@@ -60,7 +60,6 @@ describe("full scan of the fixture vault", () => {
 			"Travel/attachments/kyoto temple.webp",
 			"Assets/2024/kyoto-temple-2.jpg",
 			"Audio/lecture-4.mp3",
-			"Archives/site-backup-2023.zip",
 			"Orphans/unused-scan.pdf",
 		]);
 		const issues = controller.index.issues().map((i) => [i.sourcePath, i.kind]);
@@ -165,7 +164,7 @@ describe("incremental updates", () => {
 		scheduler.runTimers();
 		await controller.flush();
 		expect(controller.index.getItem("Assets/2024/kyoto-temple-2.jpg")?.refs.map((r) => r.sourcePath)).toEqual([path]);
-		expect(controller.index.counts().unreferenced).toBe(8);
+		expect(controller.index.counts().unreferenced).toBe(7);
 	});
 
 	it("moves everything under a renamed folder", async () => {

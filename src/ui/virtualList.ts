@@ -79,10 +79,13 @@ export class VirtualList<T> {
 		if (changed && item !== undefined) this.options.onSelect(item);
 	}
 
-	scrollIntoView(index: number): void {
+	/** Scrolls just enough to show the row, or puts it in the middle when `center` is set. */
+	scrollIntoView(index: number, center = false): void {
 		const top = index * this.options.rowHeight;
 		const bottom = top + this.options.rowHeight;
-		if (top < this.el.scrollTop) this.el.scrollTop = top;
+		const visible = top >= this.el.scrollTop && bottom <= this.el.scrollTop + this.el.clientHeight;
+		if (center && !visible) this.el.scrollTop = Math.max(0, top - (this.el.clientHeight - this.options.rowHeight) / 2);
+		else if (top < this.el.scrollTop) this.el.scrollTop = top;
 		else if (bottom > this.el.scrollTop + this.el.clientHeight) this.el.scrollTop = bottom - this.el.clientHeight;
 	}
 

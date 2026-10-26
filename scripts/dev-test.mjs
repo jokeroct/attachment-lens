@@ -1,35 +1,74 @@
-// Runs the in-Obsidian checks in the dedicated test vault:
-//   node scripts/dev-test.mjs [check ...] [--keep-open]
-// Resets .dev-vault/ from test-vault/ (keeping its .obsidian folder), installs the built plugin and
-// dev/harness, enables both, opens the vault in Obsidian (a separate window; other vaults stay as
-// they are), waits for the harness and prints the results. Run `npm run build` first.
-// The first time, Obsidian asks whether to trust the vault's plugins; answer that in Obsidian.
+// Runs the in-Obsidian checks in a test vault:
+//   node scripts/dev-test.mjs --vault <path> [check ...] [--keep-open]
+//   node scripts/dev-test.mjs --vault <path> --cleanup
+// The vault (default: $AL_DEV_VAULT, else .dev-vault/) must already be in Obsidian's vault list with
+// community plugins allowed. It may be shared with other projects: the fixtures from test-vault/ are
+// copied in as top-level folders, and the run refuses to start if any of those names already exist
+// without having been created by an earlier run. Afterwards the copied fixtures, the harness's
+// scratch folders and its trigger files are removed again, and the vault's workspace layout is put
+// back. Results and screenshots are copied to .dev-results/ first. Run `npm run build` before this.
 import { execFileSync } from "node:child_process";
 import { copyFileSync, cpSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import process from "node:process";
 
 const root = resolve(import.meta.dirname, "..");
-const vault = join(root, ".dev-vault");
 const args = process.argv.slice(2);
-const keepOpen = args.includes("--keep-open");
-const requested = args.filter((a) => !a.startsWith("--"));
+const flag = (name) => args.includes(name);
+const vaultIndex = args.indexOf("--vault");
+const vault = resolve(vaultIndex !== -1 ? (args[vaultIndex + 1] ?? "") : (process.env.AL_DEV_VAULT ?? join(root, ".dev-vault")));
+const keepOpen = flag("--keep-open");
+const requested = args.filter((a, i) => !a.startsWith("--") && i !== vaultIndex + 1);
 const checks = requested.length > 0 ? requested : ["cache", "scan", "processThrow", "repairs", "openEditor", "unsavedEditor", "canvasOpen", "stale", "undoConflict", "recovery", "incremental", "keyboard", "screens", "large"];
+const config = join(vault, ".obsidian");
+const manifestPath = join(vault, ".al-fixtures.json");
+const results = join(root, ".dev-results");
+const SCRATCH = ["Harness", "Large"];
+const FILES = [".al-run-checks", ".al-checks-done", ".al-test-results.json"];
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+if (!existsSync(config)) {
+	console.error(`${vault} has no .obsidian folder. Open it as a vault in Obsidian once, then rerun.`);
+	process.exit(1);
+}
+
+/** Removes everything a run added: the fixture folders, scratch folders and trigger files. */
+function cleanup() {
+	const created = existsSync(manifestPath) ? JSON.parse(readFileSync(manifestPath, "utf8")) : [];
+	for (const entry of created) rmSync(join(vault, entry), { recursive: true, force: true });
+	for (const file of FILES) rmSync(join(vault, file), { force: true });
+	rmSync(join(vault, ".al-shots"), { recursive: true, force: true });
+	const backup = join(results, "workspace.json");
+	if (existsSync(backup)) copyFileSync(backup, join(config, "workspace.json"));
+	rmSync(manifestPath, { force: true });
+	console.log(`Removed ${created.length} added entries from ${vault} and restored its workspace layout.`);
+}
+
+if (flag("--cleanup")) {
+	cleanup();
+	process.exit(0);
+}
 
 if (!existsSync(join(root, "main.js"))) {
 	console.error("main.js is missing. Run `npm run build` first.");
 	process.exit(1);
 }
 
-// Reset the vault content from the fixtures. Only this generated copy is touched.
-mkdirSync(join(vault, ".obsidian"), { recursive: true });
-for (const entry of readdirSync(vault)) if (entry !== ".obsidian") rmSync(join(vault, entry), { recursive: true, force: true });
-for (const entry of readdirSync(join(root, "test-vault"))) {
-	if (entry === ".obsidian") continue;
-	cpSync(join(root, "test-vault", entry), join(vault, entry), { recursive: true });
+// Undo an earlier run's copies, then make sure nothing we'd add already exists.
+const previous = existsSync(manifestPath) ? JSON.parse(readFileSync(manifestPath, "utf8")) : [];
+for (const entry of previous) rmSync(join(vault, entry), { recursive: true, force: true });
+const existing = new Set(readdirSync(vault));
+const fixtures = readdirSync(join(root, "test-vault")).filter((e) => e !== ".obsidian");
+const clashes = [...fixtures, ...SCRATCH].filter((e) => existing.has(e));
+if (clashes.length > 0) {
+	console.error(`${vault} already has ${clashes.join(", ")}, which this run would overwrite. Nothing was changed.`);
+	process.exit(1);
 }
-const config = join(vault, ".obsidian");
-if (!existsSync(join(config, "app.json"))) copyFileSync(join(root, "test-vault", ".obsidian", "app.json"), join(config, "app.json"));
+writeFileSync(manifestPath, `${JSON.stringify([...fixtures, ...SCRATCH], null, 2)}\n`);
+for (const entry of fixtures) cpSync(join(root, "test-vault", entry), join(vault, entry), { recursive: true });
+mkdirSync(results, { recursive: true });
+if (existsSync(join(config, "workspace.json")) && previous.length === 0) copyFileSync(join(config, "workspace.json"), join(results, "workspace.json"));
+
 const install = (id, from, files) => {
 	const target = join(config, "plugins", id);
 	mkdirSync(target, { recursive: true });
@@ -46,52 +85,41 @@ const enabled = existsSync(enabledPath) ? JSON.parse(readFileSync(enabledPath, "
 for (const id of [pluginId, harnessId]) if (!enabled.includes(id)) enabled.push(id);
 writeFileSync(enabledPath, `${JSON.stringify(enabled, null, 2)}\n`);
 
-const open = (uri) => {
-	if (process.platform === "win32") execFileSync("cmd", ["/c", "start", "", uri]);
-	else execFileSync(process.platform === "darwin" ? "open" : "xdg-open", [uri]);
-};
 const appData = process.env.APPDATA ?? join(process.env.HOME ?? "", ".config");
-const vaultList = join(appData, "obsidian", "obsidian.json");
+const { vaults } = JSON.parse(readFileSync(join(appData, "obsidian", "obsidian.json"), "utf8"));
 const norm = (p) => resolve(p).toLowerCase();
-const findId = () => {
-	const { vaults } = JSON.parse(readFileSync(vaultList, "utf8"));
-	return Object.entries(vaults).find(([, v]) => norm(v.path) === norm(vault))?.[0] ?? null;
-};
-const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-
-let vaultId = findId();
+const vaultId = Object.entries(vaults).find(([, v]) => norm(v.path) === norm(vault))?.[0];
 if (!vaultId) {
-	console.log(`Opening ${vault} in Obsidian for the first time. If Obsidian asks whether to trust this vault's plugins, choose to trust them there.`);
-	open(`obsidian://open?path=${encodeURIComponent(vault)}`);
-	const until = Date.now() + 300_000;
-	while (!(vaultId = findId())) {
-		if (Date.now() > until) {
-			console.error("The vault wasn't added to Obsidian's vault list. Open it in Obsidian once, then rerun.");
-			process.exit(1);
-		}
-		await sleep(1000);
-	}
+	console.error(`${vault} isn't in Obsidian's vault list. Open it in Obsidian once (Open folder as vault), then rerun.`);
+	cleanup();
+	process.exit(1);
 }
 
 const done = join(vault, ".al-checks-done");
 rmSync(done, { force: true });
 writeFileSync(join(vault, ".al-run-checks"), [...checks, ...(keepOpen ? [] : ["close"])].join("\n"));
-open(`obsidian://open?vault=${vaultId}`);
+const uri = `obsidian://open?vault=${vaultId}`;
+if (process.platform === "win32") execFileSync("cmd", ["/c", "start", "", uri]);
+else execFileSync(process.platform === "darwin" ? "open" : "xdg-open", [uri]);
 console.log(`Running ${checks.join(", ")} in ${vault}…`);
 
-const deadline = Date.now() + 900_000;
+const deadline = Date.now() + 1_200_000;
 while (!existsSync(done)) {
 	if (Date.now() > deadline) {
-		console.error("Timed out waiting for the harness. Is the vault open, with its plugins trusted?");
+		console.error("Timed out waiting for the harness. Is the vault open, with community plugins allowed?");
 		process.exit(1);
 	}
 	await sleep(1000);
 }
 
-const { results, ranAt } = JSON.parse(readFileSync(join(vault, ".al-test-results.json"), "utf8"));
+const output = JSON.parse(readFileSync(join(vault, ".al-test-results.json"), "utf8"));
+writeFileSync(join(results, "results.json"), JSON.stringify(output, null, 2));
+rmSync(join(results, "shots"), { recursive: true, force: true });
+if (existsSync(join(vault, ".al-shots"))) cpSync(join(vault, ".al-shots"), join(results, "shots"), { recursive: true });
+
 let failed = 0;
 for (const name of checks) {
-	const result = results[name];
+	const result = output.results[name];
 	const pass = result?.pass === true;
 	if (!pass) failed++;
 	console.log(`${pass ? "PASS" : "FAIL"}  ${name}${result?.ms ? `  (${result.ms} ms)` : ""}`);
@@ -99,5 +127,12 @@ for (const name of checks) {
 	if (result?.error) console.log(`        error: ${result.error.split("\n").slice(0, 3).join(" | ")}`);
 	for (const error of result?.errors ?? []) console.log(`        console: ${error.split("\n")[0]}`);
 }
-console.log(`Ran at ${ranAt}. Details: ${join(vault, ".al-test-results.json")}`);
+console.log(`Ran at ${output.ranAt}. Details: ${join(results, "results.json")}`);
+
+if (keepOpen) {
+	console.log(`The vault stays open with the fixtures in place. Afterwards run: node scripts/dev-test.mjs --vault "${vault}" --cleanup`);
+} else {
+	await sleep(4000); // let the window close and Obsidian save its layout before restoring it
+	cleanup();
+}
 process.exit(failed > 0 ? 1 : 0);

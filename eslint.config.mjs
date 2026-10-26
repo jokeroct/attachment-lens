@@ -33,6 +33,7 @@ export default defineConfig([
 			"obsidianmd/prefer-create-el": "off",
 			"obsidianmd/ui/sentence-case": "off",
 			"obsidianmd/hardcoded-config-path": "off",
+			"obsidianmd/prefer-window-timers": "off",
 			"import/no-nodejs-modules": "off",
 		},
 	},

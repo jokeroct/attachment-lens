@@ -144,6 +144,7 @@ export class AttachmentLensView extends ItemView {
 		this.unsubscribers = [];
 		this.resize?.disconnect();
 		if (this.frame !== null) window.cancelAnimationFrame(this.frame);
+		if (this.frameTimer !== null) window.clearTimeout(this.frameTimer);
 		if (this.searchTimer !== null) window.clearTimeout(this.searchTimer);
 		this.list?.destroy();
 		this.list = null;
@@ -237,13 +238,22 @@ export class AttachmentLensView extends ItemView {
 		});
 	}
 
+	/** Redraws on the next frame, or after a short timeout when the window is hidden and frames don't run. */
 	private schedule(): void {
 		if (this.frame !== null) return;
-		this.frame = window.requestAnimationFrame(() => {
+		const run = () => {
+			if (this.frame === null) return;
+			window.cancelAnimationFrame(this.frame);
+			if (this.frameTimer !== null) window.clearTimeout(this.frameTimer);
 			this.frame = null;
+			this.frameTimer = null;
 			this.render(false);
-		});
+		};
+		this.frame = window.requestAnimationFrame(run);
+		this.frameTimer = window.setTimeout(run, 100);
 	}
+
+	private frameTimer: number | null = null;
 
 	private render(force: boolean): void {
 		if (!this.bodyEl) return;
@@ -468,9 +478,7 @@ export class AttachmentLensView extends ItemView {
 		const state = this.plugin.controller.state;
 		if (!el || state.status !== "ready") return;
 		el.empty();
-		const external = this.plugin.controller.index.externalCount();
 		const parts = [state.updating ? "Updating…" : `Scanned ${formatAgo(state.scannedAt)}`, "Updates automatically when files change"];
-		if (external > 0) parts.push(`${plural(external, "external link")} not checked`);
 		el.setText(parts.join(" · "));
 	}
 
@@ -489,7 +497,7 @@ export class AttachmentLensView extends ItemView {
 		this.viewState.selected = selected;
 		this.list.setItems(items, selected);
 		this.lastSelectedIndex = Math.max(0, items.findIndex((item) => item.id === selected));
-		if (selected !== null) this.list.scrollIntoView(this.lastSelectedIndex);
+		if (selected !== null) this.list.scrollIntoView(this.lastSelectedIndex, true);
 		this.lastVersion = index.version;
 		const foot = this.listPane?.querySelector(".al-list-foot");
 		if (foot) {
@@ -557,13 +565,14 @@ export class AttachmentLensView extends ItemView {
 			}
 		}
 		const last = this.plugin.lastRepair;
-		if (last) {
+		// The banner belongs to the current undo point; once that's undone or replaced it's stale.
+		if (last && this.plugin.recovery?.createdAt === last.record.createdAt) {
 			const { record, warning } = last;
 			const title = `Repaired 1 reference in ${record.sourcePath}`;
 			const b = warning
 				? banner(el, "warning", icon("triangle-alert", "alert-triangle"), title, warning)
 				: banner(el, "success", icon("circle-check", "check-circle"), title, `Checked after writing: ${record.summary.place.replace(` in ${record.sourcePath}`, "")} now links to ${record.summary.newTarget}.`);
-			if (this.plugin.repairs.canUndo() && this.plugin.recovery?.createdAt === record.createdAt) {
+			if (this.plugin.repairs.canUndo()) {
 				button(b.actions, "Undo repair", { icon: icon("undo-2", "undo") }).addEventListener("click", () => void this.plugin.runUndo());
 			}
 			button(b.actions, "Open file").addEventListener("click", () => void this.plugin.openSourceAt(record.sourcePath, null));
@@ -922,8 +931,7 @@ export class AttachmentLensView extends ItemView {
 		const text = never.createDiv({ cls: "al-coverage-text" });
 		text.createDiv({ cls: "al-coverage-title", text: "Never covered" });
 		text.createDiv({ cls: "al-muted", text: NEVER_COVERED });
-		const external = this.plugin.controller.index.externalCount();
-		if (external > 0) text.createDiv({ cls: "al-muted", text: `${plural(external, "link")} to websites or files outside the vault weren't checked.` });
+		text.createDiv({ cls: "al-muted", text: "Links to websites and to files outside the vault aren't checked." });
 		button(pane.createDiv({ cls: "al-actions" }), "Back to the list", { icon: icon("chevron-left") }).addEventListener("click", () => {
 			this.showCoverage = false;
 			this.renderDetails();
@@ -941,7 +949,6 @@ export class AttachmentLensView extends ItemView {
 			`No references detected in supported sources: ${counts.unreferenced}`,
 			`Uncertain references: ${counts.uncertain}`,
 			`Sources read: ${index.sourcePaths().length}`,
-			`External links not checked: ${index.externalCount()}`,
 		];
 		const issues = index.issues();
 		if (issues.length > 0) {
