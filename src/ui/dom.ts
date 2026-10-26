@@ -18,6 +18,23 @@ export function iconButton(parent: HTMLElement, icon: string, label: string, cls
 	return el;
 }
 
+let labels = 0;
+
+/**
+ * Names an element for screen readers through a hidden label. Obsidian shows every aria-label as a
+ * hover tooltip, which is noise where the name only repeats what's already visible.
+ */
+export function srLabel(el: HTMLElement, text: string): void {
+	const id = `al-label-${++labels}`;
+	el.before(createSpan({ cls: "al-sr-only", text, attr: { id } }));
+	el.setAttribute("aria-labelledby", id);
+}
+
+/** Text only screen readers announce. */
+export function srText(parent: HTMLElement, text: string): HTMLElement {
+	return parent.createSpan({ cls: "al-sr-only", text });
+}
+
 export function pill(parent: HTMLElement, text: string, kind: "error" | "warning" | "success" | "muted"): HTMLElement {
 	return parent.createSpan({ cls: ["al-pill", `al-pill-${kind}`], text });
 }

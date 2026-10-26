@@ -1,6 +1,6 @@
 # Android continuation note
 
-Version 0.1.0 is desktop only (`isDesktopOnly: true`). This is what remains for Android.
+Version 1.0 is desktop only (`isDesktopOnly: true`). This is what remains for Android.
 
 ## Already portable
 

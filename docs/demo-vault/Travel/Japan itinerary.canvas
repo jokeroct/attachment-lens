@@ -1,0 +1,49 @@
+{
+	"nodes": [
+		{
+			"id": "k1",
+			"type": "file",
+			"file": "Attachments/kyoto-temple.jpg",
+			"x": 0,
+			"y": 0,
+			"width": 400,
+			"height": 280
+		},
+		{
+			"id": "k2",
+			"type": "file",
+			"file": "Attachments/fushimi-inari.jpg",
+			"x": 440,
+			"y": 0,
+			"width": 400,
+			"height": 280
+		},
+		{
+			"id": "k3",
+			"type": "text",
+			"text": "## Day 3\nKiyomizu-dera at sunrise, then tea in Gion. ![[tea-ceremony.png|200]]",
+			"x": 0,
+			"y": 320,
+			"width": 840,
+			"height": 200
+		},
+		{
+			"id": "k4",
+			"type": "file",
+			"file": "Travel/Kyoto trip 2024.md",
+			"x": 880,
+			"y": 0,
+			"width": 360,
+			"height": 520
+		}
+	],
+	"edges": [
+		{
+			"id": "e1",
+			"fromNode": "k1",
+			"fromSide": "bottom",
+			"toNode": "k3",
+			"toSide": "top"
+		}
+	]
+}

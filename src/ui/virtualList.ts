@@ -1,10 +1,13 @@
+import { srLabel } from "./dom";
+
 // A keyboard-operable list that only creates elements for the rows in view, so a vault with tens
 // of thousands of attachments stays fast. Follows the listbox pattern with aria-activedescendant.
 
 export interface VirtualListOptions<T> {
 	rowHeight: number;
 	id: (item: T) => string;
-	label: (item: T) => string;
+	/** Screen-reader name of the list */
+	name: string;
 	render: (item: T, row: HTMLElement) => void;
 	onSelect: (item: T) => void;
 	onActivate: (item: T) => void;
@@ -25,7 +28,8 @@ export class VirtualList<T> {
 		parent: HTMLElement,
 		private readonly options: VirtualListOptions<T>,
 	) {
-		this.el = parent.createDiv({ cls: "al-list-scroll", attr: { role: "listbox", tabindex: "0", "aria-label": "Attachments" } });
+		this.el = parent.createDiv({ cls: "al-list-scroll", attr: { role: "listbox", tabindex: "0" } });
+		srLabel(this.el, options.name);
 		this.spacer = this.el.createDiv({ cls: "al-list-spacer" });
 		this.el.addEventListener("scroll", () => this.schedule());
 		this.el.addEventListener("keydown", (evt) => this.onKey(evt));
@@ -144,7 +148,6 @@ export class VirtualList<T> {
 				row = this.spacer.createDiv({ cls: "al-row", attr: { role: "option", id: `${this.prefix}-${index}`, "aria-posinset": String(index + 1) } });
 				row.dataset.index = String(index);
 				row.setCssProps({ "--al-row-top": `${index * rowHeight}px` });
-				row.setAttribute("aria-label", this.options.label(item));
 				this.options.render(item, row);
 				this.rendered.set(index, row);
 			}

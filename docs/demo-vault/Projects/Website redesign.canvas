@@ -1,0 +1,42 @@
+{
+	"nodes": [
+		{
+			"id": "g1",
+			"type": "group",
+			"label": "Direction",
+			"background": "Attachments/Design/moodboard.jpg",
+			"backgroundStyle": "cover",
+			"x": -40,
+			"y": -40,
+			"width": 940,
+			"height": 640
+		},
+		{
+			"id": "c1",
+			"type": "file",
+			"file": "Attachments/Design/homepage-mockup.png",
+			"x": 0,
+			"y": 0,
+			"width": 480,
+			"height": 320
+		},
+		{
+			"id": "t1",
+			"type": "text",
+			"text": "## Palette\nUse the agreed palette: ![[color-palette.png|240]]",
+			"x": 520,
+			"y": 0,
+			"width": 340,
+			"height": 220
+		}
+	],
+	"edges": [
+		{
+			"id": "e1",
+			"fromNode": "c1",
+			"fromSide": "right",
+			"toNode": "t1",
+			"toSide": "left"
+		}
+	]
+}

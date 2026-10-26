@@ -1,53 +1,52 @@
-# Community directory submission notes
+# Releasing and the Community directory
 
-Attachment Lens 0.1.0 is prepared for the Obsidian Community plugins directory but **not submitted, released or pushed**. This file lists what's ready and what has to happen first.
+How Attachment Lens is released, and how it gets into Obsidian's Community directory.
 
-## Release blockers
+## Releasing a version
 
-1. **Repository.** The directory needs a public GitHub repository, expected at `jokeroct/attachment-lens` like your other plugins. Add its URL as `repository` in `package.json` (as the other plugins do), and use it in the submission entry below.
-2. **Native verification on 1.14.0.** Checks ran on Obsidian 1.14.5 only (see [VERIFICATION.md](VERIFICATION.md)). `minAppVersion` is 1.14.0, and the lint rule `obsidianmd/no-unsupported-api` confirms that no API newer than 1.14.0 is used. Running once on 1.14.0, or raising `minAppVersion` to the oldest version actually tested, removes the remaining doubt.
-3. **Desktop only.** `isDesktopOnly` is `true` until the Android phase is done ([ANDROID.md](ANDROID.md)).
+1. Set the new version with `npm version <patch|minor|major> --no-git-tag-version`. This updates `package.json`, `manifest.json` and `versions.json` through `scripts/version-bump.mjs`.
+2. Run `npm run check`, then commit and push.
+3. Push a tag that matches the version exactly, without a `v`: `git tag 1.0.1 && git push origin 1.0.1`.
+4. The **Release Obsidian plugin** workflow tests and builds the plugin, attests the files, and creates a draft release with `main.js`, `manifest.json` and `styles.css`.
+5. Review the draft on GitHub, add release notes, and publish it. Obsidian picks up the new version from the published release.
 
-## What's ready
+## Community directory
 
-- `manifest.json` with id `attachment-lens`, name, author MON.D.SAMA with `authorUrl`, version 0.1.0, `minAppVersion` 1.14.0, a description that ends with a period and doesn't mention "Obsidian" or "plugin", and `isDesktopOnly: true`.
-- `versions.json` mapping 0.1.0 to 1.14.0, kept in sync by `npm version` through `scripts/version-bump.mjs`.
-- MIT `LICENSE`. Bundled dependencies: `yaml` (ISC) and `@noble/hashes` (MIT). Their license notices are prepended to `main.js` by the build.
-- `README.md` covering installation, usage, scan coverage, limitations, repair behavior, undo and privacy.
-- `npm run package` writes `dist/attachment-lens-0.1.0/` with `main.js`, `manifest.json`, `styles.css` and checksums, plus a zip.
-- ESLint passes with `eslint-plugin-obsidianmd`'s recommended rules, which the review bot also uses.
+Since May 2026, submissions go through [community.obsidian.md](https://community.obsidian.md), not pull requests to `obsidianmd/obsidian-releases`:
+
+1. Sign in with the Obsidian account and link the GitHub account that owns the repository.
+2. Choose **Add your plugin** and pick `jokeroct/attachment-lens`. The directory reads `manifest.json` from the default branch.
+3. An automated review runs. Its findings show in the directory; the plugin can't be installed from Obsidian until errors are fixed. Fixes go out as a new release with a higher version.
+4. After it passes, choose **Publish**. The listing can be edited later.
+
+Plugins that pass only the automated review are listed with "This plugin has not been manually reviewed by Obsidian staff", like the other jokeroct plugins.
+
+## What the plugin already meets
+
+- `manifest.json`: id `attachment-lens` (lowercase, no "obsidian", doesn't end in "plugin"), name, version in x.y.z, `minAppVersion` 1.14.0, a description ending with a period, author MON.D.SAMA with `authorUrl`, `fundingUrl` for Ko-fi, and `isDesktopOnly: true`.
+- `versions.json` maps each release to its minimum Obsidian version.
+- MIT `LICENSE`. Bundled dependencies `yaml` (ISC) and `@noble/hashes` (MIT) have their notices prepended to `main.js` by the build.
+- README with installation, usage and limitations; its opening is what the listing shows as an excerpt.
+- ESLint passes with `eslint-plugin-obsidianmd`'s recommended rules, which mirror the review's checks.
 
 ## Guideline checklist
 
 | Guideline | Status |
 | --- | --- |
 | No `innerHTML`, `outerHTML` or `insertAdjacentHTML`; DOM built with `createEl` | Yes |
-| No inline styles; styling through `styles.css` and theme variables (dynamic list offsets use `setCssProps`) | Yes |
+| No inline styles; styling through `styles.css` and theme variables (list offsets use `setCssProps`) | Yes |
 | No default hotkeys; command names without the plugin name | Yes |
-| Sentence case in UI text | Yes, with the plugin's name and Obsidian feature names kept |
-| Settings tab without a top-level heading; uses `getSettingDefinitions` (1.13+) | Yes |
+| Sentence case in UI text | Yes, keeping the plugin's name and Obsidian feature names |
+| Settings without a top-level heading; uses `getSettingDefinitions` (1.13+) | Yes |
 | `Vault#configDir` instead of a hard-coded `.obsidian` | Yes |
 | Doesn't detach leaves in `onunload`; no view references stored on the plugin | Yes |
-| Events registered with `registerEvent`/`registerDomEvent`, so they're released on unload | Yes |
+| Events registered with `registerEvent`/`registerDomEvent`, released on unload | Yes |
 | No Node.js or Electron APIs at runtime | Yes |
 | No network requests, telemetry or ads | Yes |
-| Uses `Vault.process` for writes to files that may be open | Yes |
-| Doesn't use private APIs | Yes (the dev harness does, but it isn't packaged) |
+| `Vault.process` for writes to files that may be open | Yes |
+| No private APIs | Yes (the dev harness uses some, but it isn't packaged) |
 
-## Submitting, when the blockers are cleared
+## Still open
 
-1. Push the repository to GitHub.
-2. Create a GitHub release whose tag is exactly `0.1.0` (no `v`), and attach `main.js`, `manifest.json` and `styles.css` as separate assets.
-3. Fork `obsidianmd/obsidian-releases`, add this entry to the end of `community-plugins.json`, and open a pull request using its template:
-
-```json
-{
-  "id": "attachment-lens",
-  "name": "Attachment Lens",
-  "author": "MON.D.SAMA",
-  "description": "See where attachments are used, find broken attachment links, and repair them one at a time after reviewing the exact change.",
-  "repo": "jokeroct/attachment-lens"
-}
-```
-
-4. Answer the review bot's findings and any reviewer questions on the pull request.
+- **Obsidian 1.14.0.** Native checks ran on 1.14.5. The `obsidianmd/no-unsupported-api` lint rule confirms no API newer than 1.14.0 is used.
+- **Mobile.** `isDesktopOnly` stays `true` until the Android phase ([ANDROID.md](ANDROID.md)).

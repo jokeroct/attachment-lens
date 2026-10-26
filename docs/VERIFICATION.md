@@ -1,6 +1,6 @@
-# Verification report: Attachment Lens 0.1.0 (desktop)
+# Verification report: Attachment Lens 1.0.0 (desktop)
 
-Date: 26–27 October 2026. Machine: Windows 11 Pro. Obsidian 1.14.5 (installer build), Node 24.18.
+Date: 26–27 October 2026. The full native suite was run again on the 1.0.0 build, after the Ko-fi support row, the screen-reader labels and the narrow-layout changes, and passed. Machine: Windows 11 Pro. Obsidian 1.14.5 (installer build), Node 24.18.
 
 ## Summary
 
@@ -13,7 +13,7 @@ Date: 26–27 October 2026. Machine: Windows 11 Pro. Obsidian 1.14.5 (installer 
 | Native checks in Obsidian 1.14.5 (harness) | Passed, 14 of 14 checks with 107 assertions |
 | Real-keyboard pass in Obsidian (computer use) | Passed after fixes, see below |
 | Light and dark themes | Passed: 28 screenshots of all designed states reviewed |
-| Package for manual installation | Passed: `dist/attachment-lens-0.1.0/` and a zip that opens correctly |
+| Package for manual installation | Passed: `dist/attachment-lens-1.0.0/` and a zip that opens correctly |
 
 No check is failing at the end of this round. The issues found along the way, and their fixes, are listed below.
 
@@ -69,6 +69,8 @@ Done with computer use in the dev vault window, keys only after one click to foc
 8. Filter chips had no visible focus ring. Added.
 9. **Show in Attachment Lens** in a narrow sidebar stayed on the list. It now opens the details.
 10. The success banner stayed after an undo made elsewhere. It now hides once its undo point is gone.
+11. Obsidian shows every `aria-label` as a hover tooltip, so list rows and groups showed tooltips that repeated their visible text. Those names now come from hidden labels.
+12. After choosing a suggestion with the mouse, Review change could be out of view. The picker now scrolls it into view.
 
 ## Not performed
 

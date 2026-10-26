@@ -12,7 +12,7 @@ const DONE = ".al-checks-done";
 const SHOTS = ".al-shots";
 const PLUGIN_ID = "attachment-lens";
 const VIEW_TYPE = "attachment-lens";
-const CHECKS = ["cache", "scan", "processThrow", "repairs", "openEditor", "unsavedEditor", "canvasOpen", "stale", "undoConflict", "recovery", "incremental", "keyboard", "screens", "large"];
+const CHECKS = ["cache", "scan", "processThrow", "repairs", "openEditor", "unsavedEditor", "canvasOpen", "stale", "undoConflict", "recovery", "incremental", "keyboard", "screens", "large", "docs"];
 
 module.exports = class AttachmentLensHarness extends Plugin {
 	onload() {
@@ -519,7 +519,7 @@ module.exports = class AttachmentLensHarness extends Plugin {
 		await sleep(100);
 		const backInList = document.activeElement === listEl;
 		const focusable = [...root.querySelectorAll("button, input, select, [tabindex='0']")].filter((el) => !el.disabled);
-		const unnamed = focusable.filter((el) => !(el.getAttribute("aria-label") || el.textContent.trim() || el.getAttribute("placeholder"))).map((el) => el.outerHTML.slice(0, 80));
+		const unnamed = focusable.filter((el) => !(el.getAttribute("aria-label") || el.getAttribute("aria-labelledby") || el.textContent.trim() || el.getAttribute("placeholder"))).map((el) => el.outerHTML.slice(0, 80));
 		// Picker keyboard: arrow keys move the choice, Escape closes it
 		lens.showFilter("broken");
 		await sleep(200);
@@ -680,6 +680,220 @@ module.exports = class AttachmentLensHarness extends Plugin {
 			},
 			info: { shots, undoResults },
 		};
+	}
+
+	/**
+	 * Screenshots and GIF frames for the README, taken with the demo vault (docs/demo-vault) copied in.
+	 * The window is set to 1440×900 with the sidebars collapsed, and the scan is limited to the demo
+	 * folders so the vault's other files don't appear. Everything is put back afterwards.
+	 */
+	async docs() {
+		const roots = JSON.parse(await this.app.vault.adapter.read(".al-fixtures.json"));
+		const ours = (path) => roots.includes(path.split("/")[0]);
+		const lens = this.lens;
+		const controller = lens.controller;
+		const host = controller.host;
+		const listFiles = host.listFiles.bind(host);
+		host.listFiles = () => listFiles().filter((file) => ours(file.path));
+		const ws = this.app.workspace;
+		const win = remote.getCurrentWindow();
+		const bounds = win.getBounds();
+		const wasMaximized = win.isMaximized();
+		const leftCollapsed = ws.leftSplit.collapsed;
+		const rightCollapsed = ws.rightSplit.collapsed;
+		const originalTheme = document.body.hasClass("theme-dark") ? "dark" : "light";
+		const style = document.head.createEl("style", { text: ".al-doc-highlight { outline: 3px solid #ffb020 !important; outline-offset: 2px; border-radius: 6px; }" });
+		const { adapter } = this.app.vault;
+		const shots = [];
+		const frames = [];
+		const capture = async (path, rect) => {
+			await sleep(450);
+			// Notices from earlier steps would cover the panel.
+			document.querySelectorAll(".notice").forEach((n) => n.remove());
+			const r = rect ?? ws.rootSplit.containerEl.getBoundingClientRect();
+			const image = await remote.getCurrentWebContents().capturePage({ x: Math.round(r.x), y: Math.round(r.y), width: Math.round(r.width), height: Math.round(r.height) });
+			const png = image.toPNG();
+			await adapter.writeBinary(path, png.buffer.slice(png.byteOffset, png.byteOffset + png.byteLength));
+		};
+		const shot = async (name, rect) => {
+			await capture(`${SHOTS}/docs-${name}.png`, rect);
+			shots.push(name);
+		};
+		const frame = async (hold) => {
+			const file = `frame-${String(frames.length + 1).padStart(2, "0")}.png`;
+			await capture(`${SHOTS}/gif/${file}`);
+			frames.push({ file, hold });
+		};
+		const find = (selector) => document.querySelector(selector);
+		const mark = (el) => {
+			document.querySelectorAll(".al-doc-highlight").forEach((e) => e.removeClass("al-doc-highlight"));
+			el?.addClass("al-doc-highlight");
+			return el;
+		};
+		const unmark = () => mark(null);
+		const missingIndex = (name) => controller.index.query("broken", "all", "", "name").findIndex((i) => i.name === name);
+		try {
+			if (!(await adapter.exists(`${SHOTS}/gif`))) await adapter.mkdir(`${SHOTS}/gif`);
+			if (wasMaximized) win.unmaximize();
+			win.setContentSize(1440, 900);
+			ws.leftSplit.collapse();
+			ws.rightSplit.collapse();
+			const view = await lens.activateView();
+			ws.iterateAllLeaves((leaf) => {
+				if (leaf.getRoot() === ws.rootSplit && leaf !== view.leaf) leaf.detach();
+			});
+			await sleep(800);
+
+			// Before the first scan
+			this.setTheme("light");
+			controller.index.clear();
+			controller.setState({ status: "idle" });
+			await shot("first-scan-light");
+			await this.rescan();
+
+			// The overview, both themes
+			view.reveal("Attachments/kyoto-temple.jpg");
+			await shot("overview-light");
+			this.setTheme("dark");
+			await shot("overview-dark");
+
+			// GIF: one repair from start to finish, in dark
+			await frame(1900);
+			mark(find('[data-long="Broken references"]'));
+			await frame(900);
+			unmark();
+			view.showFilter("broken");
+			view.list.select(missingIndex("kyoto-temple.jpeg"), true);
+			await sleep(200);
+			mark(find("[data-repair]"));
+			await frame(1300);
+			find("[data-repair]").click();
+			await sleep(300);
+			mark(find(".al-candidate"));
+			await frame(1500);
+			find(".al-candidate").click();
+			unmark();
+			mark(find(".al-picker-foot .mod-cta"));
+			await frame(1700);
+			unmark();
+			find(".al-picker-foot .mod-cta").click();
+			await this.waitFor(() => find(".al-review-modal"), 4000);
+			await sleep(400);
+			mark(find(".al-review-modal .al-modal-foot .mod-cta"));
+			await frame(2900);
+			unmark();
+			find(".al-review-modal .al-modal-foot .mod-cta").click();
+			await this.waitFor(() => !find(".al-review-modal"), 6000);
+			await frame(2900);
+			await shot("repaired-dark");
+			await lens.runUndo();
+			await sleep(500);
+
+			// Choosing a replacement and reviewing it, light
+			this.setTheme("light");
+			view.showFilter("broken");
+			view.list.select(missingIndex("kyoto-temple.jpeg"), true);
+			await sleep(200);
+			find("[data-repair]").click();
+			await sleep(300);
+			find(".al-candidate").click();
+			await shot("suggestions-light");
+			find(".al-picker-foot .mod-cta").click();
+			await this.waitFor(() => find(".al-review-modal"), 4000);
+			await shot("review-light");
+			find(".al-review-modal .al-modal-foot button:not(.mod-cta)").click();
+			await this.waitFor(() => !find(".al-review-modal"), 4000);
+
+			// An uncertain reference, dark
+			this.setTheme("dark");
+			const dune = controller.index.brokenRefs().find((r) => r.sourcePath === "Reading/Dune.md");
+			const done = lens.startReview(dune.id, "Attachments/Covers/dune-cover.jpeg", () => {});
+			await this.waitFor(() => find(".al-review-modal"), 4000);
+			await shot("uncertain-dark");
+			find(".al-review-modal .al-modal-foot button:not(.mod-cta)").click();
+			await done;
+
+			// Narrow sidebar, light
+			this.setTheme("light");
+			ws.rightSplit.expand();
+			const side = ws.getRightLeaf(false);
+			await side.setViewState({ type: VIEW_TYPE, active: true });
+			await ws.revealLeaf(side);
+			await sleep(600);
+			side.view.reveal("Attachments/kyoto-temple.jpg");
+			await shot("narrow-light", ws.rightSplit.containerEl.getBoundingClientRect());
+			side.detach();
+			ws.rightSplit.collapse();
+
+			// Settings, light
+			// Settings open in their own window in Obsidian 1.14, so that window is captured instead.
+			const windows = new Set(remote.BrowserWindow.getAllWindows().map((w) => w.id));
+			this.app.setting.open();
+			this.app.setting.openTabById("attachment-lens");
+			await sleep(1500);
+			const settingsWin = remote.BrowserWindow.getAllWindows().find((w) => !windows.has(w.id));
+			const settingsDoc = this.app.setting.containerEl?.ownerDocument;
+			if (settingsDoc) {
+				settingsDoc.body.removeClass("theme-light", "theme-dark");
+				settingsDoc.body.addClass("theme-light");
+			}
+			if (settingsWin) {
+				settingsWin.setContentSize(1100, 720);
+				await sleep(900);
+				settingsDoc?.querySelectorAll(".notice").forEach((n) => n.remove());
+				const image = await settingsWin.webContents.capturePage();
+				const png = image.toPNG();
+				await adapter.writeBinary(`${SHOTS}/docs-settings-light.png`, png.buffer.slice(png.byteOffset, png.byteOffset + png.byteLength));
+				shots.push("settings-light");
+			}
+			this.app.setting.close();
+			await sleep(500);
+
+			// Coverage, dark: a board that isn't valid JSON appears
+			this.setTheme("dark");
+			await this.app.vault.create("Projects/Old moodboard.canvas", '{"nodes":[{"id":"x","type":"file","file":"Attachments/Design/old-logo.png",}]}');
+			await this.waitFor(() => controller.index.issues().length > 0, 5000);
+			await sleep(300);
+			view.showFilter("all");
+			find(".al-banners .al-banner-warning button")?.click();
+			await shot("coverage-dark");
+		} finally {
+			unmark();
+			style.remove();
+			this.setTheme(originalTheme);
+			host.listFiles = listFiles;
+			if (!leftCollapsed) ws.leftSplit.expand();
+			if (!rightCollapsed) ws.rightSplit.expand();
+			win.setBounds(bounds);
+			if (wasMaximized) win.maximize();
+			await adapter.write(`${SHOTS}/gif/frames.json`, JSON.stringify(frames, null, 2));
+		}
+		return { checks: { "docs screenshots taken": shots.length === 10, "GIF frames captured": frames.length === 7 }, info: { shots, frames } };
+	}
+
+	/** Where Obsidian's settings open in this version, for the docs screenshot. Diagnostic only. */
+	async settingsProbe() {
+		const before = remote.BrowserWindow.getAllWindows().length;
+		const setting = this.app.setting;
+		const info = { hasSetting: Boolean(setting), methods: setting ? Object.keys(Object.getPrototypeOf(setting)).slice(0, 40) : [] };
+		try {
+			setting.open();
+			await sleep(1500);
+			info.afterOpen = {
+				windows: remote.BrowserWindow.getAllWindows().length - before,
+				modals: [...document.querySelectorAll(".modal")].map((m) => m.className),
+				leaves: this.app.workspace.getLeavesOfType("settings").length,
+				activeView: this.app.workspace.getActiveViewOfType ? this.app.workspace.activeLeaf?.view?.getViewType?.() : null,
+				bodyHasSettings: Boolean(document.querySelector(".mod-settings, .vertical-tabs-container")),
+			};
+			setting.openTabById("attachment-lens");
+			await sleep(800);
+			info.afterTab = { kofi: Boolean(document.querySelector(".al-kofi-button")), active: setting.activeTab?.id ?? null };
+			setting.close();
+		} catch (error) {
+			info.error = String(error?.stack ?? error);
+		}
+		return { checks: {}, info };
 	}
 
 	/** A bigger vault inside Obsidian: how long the scan takes and how long the longest task blocks. */

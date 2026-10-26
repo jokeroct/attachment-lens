@@ -1,6 +1,7 @@
 // Runs the in-Obsidian checks in a test vault:
 //   node scripts/dev-test.mjs --vault <path> [check ...] [--keep-open]
 //   node scripts/dev-test.mjs --vault <path> --cleanup
+//   node scripts/dev-test.mjs --vault <path> --fixtures docs/demo-vault docs   (README screenshots)
 // The vault (default: $AL_DEV_VAULT, else .dev-vault/) must already be in Obsidian's vault list with
 // community plugins allowed. It may be shared with other projects: the fixtures from test-vault/ are
 // copied in as top-level folders, and the run refuses to start if any of those names already exist
@@ -17,8 +18,10 @@ const args = process.argv.slice(2);
 const flag = (name) => args.includes(name);
 const vaultIndex = args.indexOf("--vault");
 const vault = resolve(vaultIndex !== -1 ? (args[vaultIndex + 1] ?? "") : (process.env.AL_DEV_VAULT ?? join(root, ".dev-vault")));
+const fixturesIndex = args.indexOf("--fixtures");
+const fixturesDir = resolve(root, fixturesIndex !== -1 ? (args[fixturesIndex + 1] ?? "") : "test-vault");
 const keepOpen = flag("--keep-open");
-const requested = args.filter((a, i) => !a.startsWith("--") && i !== vaultIndex + 1);
+const requested = args.filter((a, i) => !a.startsWith("--") && i !== vaultIndex + 1 && i !== fixturesIndex + 1);
 const checks = requested.length > 0 ? requested : ["cache", "scan", "processThrow", "repairs", "openEditor", "unsavedEditor", "canvasOpen", "stale", "undoConflict", "recovery", "incremental", "keyboard", "screens", "large"];
 const config = join(vault, ".obsidian");
 const manifestPath = join(vault, ".al-fixtures.json");
@@ -58,14 +61,14 @@ if (!existsSync(join(root, "main.js"))) {
 const previous = existsSync(manifestPath) ? JSON.parse(readFileSync(manifestPath, "utf8")) : [];
 for (const entry of previous) rmSync(join(vault, entry), { recursive: true, force: true });
 const existing = new Set(readdirSync(vault));
-const fixtures = readdirSync(join(root, "test-vault")).filter((e) => e !== ".obsidian");
+const fixtures = readdirSync(fixturesDir).filter((e) => e !== ".obsidian");
 const clashes = [...fixtures, ...SCRATCH].filter((e) => existing.has(e));
 if (clashes.length > 0) {
 	console.error(`${vault} already has ${clashes.join(", ")}, which this run would overwrite. Nothing was changed.`);
 	process.exit(1);
 }
 writeFileSync(manifestPath, `${JSON.stringify([...fixtures, ...SCRATCH], null, 2)}\n`);
-for (const entry of fixtures) cpSync(join(root, "test-vault", entry), join(vault, entry), { recursive: true });
+for (const entry of fixtures) cpSync(join(fixturesDir, entry), join(vault, entry), { recursive: true });
 mkdirSync(results, { recursive: true });
 if (existsSync(join(config, "workspace.json")) && previous.length === 0) copyFileSync(join(config, "workspace.json"), join(results, "workspace.json"));
 

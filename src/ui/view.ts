@@ -7,7 +7,7 @@ import type { Reference } from "../core/types";
 import { formLabel, placeLabel } from "../obsidian/labels";
 import type { ScanPhase } from "../obsidian/scanner";
 import type AttachmentLensPlugin from "../main";
-import { banner, button, code, copyText, iconButton, pill } from "./dom";
+import { banner, button, code, copyText, iconButton, pill, srLabel, srText } from "./dom";
 import { categoryIcon, formatAgo, formatBytes, formatDate, formatSize, icon, plural } from "./format";
 import { VirtualList } from "./virtualList";
 
@@ -191,7 +191,6 @@ export class AttachmentLensView extends ItemView {
 		const search = new SearchComponent(this.toolbarEl);
 		this.searchBox = search;
 		search.setPlaceholder("Search name or path");
-		search.inputEl.setAttribute("aria-label", "Search attachments by name or path");
 		search.setValue(this.viewState.search);
 		search.onChange((value) => {
 			if (this.searchTimer !== null) window.clearTimeout(this.searchTimer);
@@ -243,6 +242,8 @@ export class AttachmentLensView extends ItemView {
 
 	private applyNarrow(): void {
 		this.bodyEl.toggleClass("al-show-details", this.narrow && this.detailsOpen);
+		// The short label keeps Rescan, Undo and More on one row in a sidebar.
+		this.undoButton.querySelector("span:last-child")?.setText(this.narrow ? "Undo" : "Undo last repair");
 		this.filtersEl?.querySelectorAll<HTMLElement>("[data-short]").forEach((chip) => {
 			const label = chip.querySelector(".al-chip-label");
 			if (label) label.setText(this.narrow ? (chip.dataset.short ?? "") : (chip.dataset.long ?? ""));
@@ -369,7 +370,8 @@ export class AttachmentLensView extends ItemView {
 			if (i === current && progress.total > 0) text += `: ${progress.done.toLocaleString()} of ${progress.total.toLocaleString()}`;
 			li.createSpan({ text });
 		});
-		const bar = box.createEl("progress", { cls: "al-progress", attr: { max: String(Math.max(progress.total, 1)), value: String(progress.done), "aria-label": "Scan progress" } });
+		const bar = box.createEl("progress", { cls: "al-progress", attr: { max: String(Math.max(progress.total, 1)), value: String(progress.done) } });
+		srLabel(bar, "Scan progress");
 		bar.value = progress.done;
 		if (progress.phase === "reading" || progress.phase === "resolving") {
 			box.createEl("p", { cls: "al-muted", text: `Found so far: ${plural(progress.refs, "reference")}${progress.phase === "resolving" ? `, ${progress.broken.toLocaleString()} broken` : ""}` });
@@ -382,7 +384,7 @@ export class AttachmentLensView extends ItemView {
 
 	private buildResults(): void {
 		this.bodyEl.empty();
-		this.filtersEl = this.bodyEl.createDiv({ cls: "al-filters", attr: { role: "toolbar", "aria-label": "Filters" } });
+		this.filtersEl = this.bodyEl.createDiv({ cls: "al-filters", attr: { role: "toolbar" } });
 		this.statusEl = this.bodyEl.createDiv({ cls: "al-status", attr: { "aria-live": "polite" } });
 		const split = this.bodyEl.createDiv({ cls: "al-split" });
 		this.listPane = split.createDiv({ cls: "al-list-pane" });
@@ -402,7 +404,7 @@ export class AttachmentLensView extends ItemView {
 		this.list = new VirtualList<ListItem>(this.listPane, {
 			rowHeight: ROW_HEIGHT,
 			id: (item) => item.id,
-			label: (item) => (item.kind === "attachment" ? `${item.name}, ${item.folder || "vault root"}, ${plural(item.refs.length, "reference")}` : `${item.name}, missing, ${plural(item.refs.length, "reference")}`),
+			name: "Attachments",
 			render: (item, row) => this.renderRow(item, row),
 			onSelect: (item) => {
 				this.viewState.selected = item.id;
@@ -445,7 +447,8 @@ export class AttachmentLensView extends ItemView {
 		const counts = this.plugin.controller.index.counts();
 		const issues = this.plugin.controller.index.issues().length;
 		el.empty();
-		const group = el.createDiv({ cls: "al-filter-group", attr: { role: "group", "aria-label": "Show" } });
+		const group = el.createDiv({ cls: "al-filter-group", attr: { role: "group" } });
+		srLabel(group, "Show");
 		const values: Record<FilterId, number> = { all: counts.attachments, broken: counts.broken, unreferenced: counts.unreferenced, uncertain: counts.uncertain };
 		for (const filter of FILTERS) {
 			const active = this.viewState.filter === filter.id;
@@ -546,7 +549,8 @@ export class AttachmentLensView extends ItemView {
 			main.createDiv({ cls: "al-row-path", text: item.target.includes("/") ? `Missing · ${item.target}` : `Missing · linked from ${plural(sources, "source")}` });
 			row.createSpan({ cls: "al-row-size", text: categoryOfPath(item.target) === "other" ? "" : categoryOfPath(item.target) });
 		}
-		row.createSpan({ cls: ["al-row-count", ...(item.refs.length === 0 ? ["is-zero"] : [])], text: String(item.refs.length) });
+		const count = row.createSpan({ cls: ["al-row-count", ...(item.refs.length === 0 ? ["is-zero"] : [])], text: String(item.refs.length) });
+		srText(count, item.refs.length === 1 ? " reference" : " references");
 	}
 
 	// Banners
@@ -791,12 +795,13 @@ export class AttachmentLensView extends ItemView {
 			ranked = rankCandidates(ref.linkpath, ref.sourcePath, inputs, this.plugin.settings.suggestionCount);
 			this.candidates.set(ref.id, ranked);
 		}
-		const group = box.createDiv({ cls: "al-candidates", attr: { role: "radiogroup", "aria-label": "Possible replacements" } });
+		const group = box.createDiv({ cls: "al-candidates", attr: { role: "radiogroup" } });
+		srLabel(group, "Possible replacements");
 		type Option = { path: string; el: HTMLElement };
 		const suggested: Option[] = [];
 		let found: Option[] = [];
 		const all = () => [...suggested, ...found];
-		const choose = (path: string, focus: boolean) => {
+		const choose = (path: string, focus: boolean, reveal = false) => {
 			state.target = path;
 			for (const option of all()) {
 				const on = option.path === path;
@@ -807,6 +812,8 @@ export class AttachmentLensView extends ItemView {
 			}
 			this.renderSelection(selection, path);
 			review.disabled = false;
+			// After a click, bring the preview and Review change into view; arrow keys keep the focused row visible instead.
+			if (reveal) foot.scrollIntoView({ block: "nearest" });
 		};
 		const addOption = (container: HTMLElement, path: string, reasons: Candidate["reasons"], bucket: Option[]) => {
 			const el = container.createDiv({ cls: "al-candidate", attr: { role: "radio", "aria-checked": "false", tabindex: "-1" } });
@@ -822,7 +829,7 @@ export class AttachmentLensView extends ItemView {
 				const chips = text.createDiv({ cls: "al-reasons" });
 				for (const reason of reasons) chips.createSpan({ cls: ["al-reason", ...(reason.warn ? ["is-warning"] : [])], text: reason.text });
 			}
-			el.addEventListener("click", () => choose(path, true));
+			el.addEventListener("click", () => choose(path, true, true));
 			el.addEventListener("keydown", (evt) => {
 				const options = all();
 				const at = options.findIndex((o) => o.el === el);
@@ -848,7 +855,8 @@ export class AttachmentLensView extends ItemView {
 		const label = searchWrap.createEl("label", { cls: "al-muted", text: `Choose another: search all ${plural(index.counts().attachments, "attachment")}`, attr: { for: `al-picker-search-${ref.id.length}` } });
 		const input = searchWrap.createEl("input", { type: "search", attr: { id: label.getAttribute("for") ?? "", placeholder: "File name or path", spellcheck: "false" } });
 		input.value = state.query;
-		const results = searchWrap.createDiv({ cls: "al-candidates", attr: { role: "radiogroup", "aria-label": "Search results" } });
+		const results = searchWrap.createDiv({ cls: "al-candidates", attr: { role: "radiogroup" } });
+		srLabel(results, "Search results");
 		const drawResults = () => {
 			results.empty();
 			found = [];

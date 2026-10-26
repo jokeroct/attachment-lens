@@ -1,120 +1,342 @@
-# Attachment Lens
+<h1 align="center">Attachment Lens</h1>
 
-See where your attachments are used, find broken attachment links, and repair them one reference at a time after reviewing the exact change.
+<p align="center">
+  <b>See where every attachment in your vault is used. Find broken attachment links, and repair them safely, one at a time.</b>
+</p>
 
-Attachment Lens is a free, open-source plugin for [Obsidian](https://obsidian.md). Version 0.1.0 is desktop only and isn't in the Community plugins directory yet.
+<p align="center">
+  <a href="https://github.com/jokeroct/attachment-lens/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/jokeroct/attachment-lens?label=release&color=7852ee"></a>
+  <img alt="Obsidian 1.14 or newer, desktop" src="https://img.shields.io/badge/Obsidian-1.14%2B%20desktop-7852ee?logo=obsidian&logoColor=white">
+  <a href="LICENSE"><img alt="MIT license" src="https://img.shields.io/github/license/jokeroct/attachment-lens?color=555"></a>
+</p>
 
-![Attachment Lens showing an attachment and the places it is used](docs/screenshots/C-attachment-details-light.png)
+<p align="center">
+  <img src="docs/images/repair-flow.gif" alt="Finding a broken image link, choosing the right file, reviewing the exact change and applying it" width="900">
+</p>
+
+<p align="center">
+  <a href="https://ko-fi.com/mdsama"><img src="https://ko-fi.com/img/githubbutton_sm.svg" alt="Support me on Ko-fi"></a>
+</p>
+
+<p align="center">
+  <a href="#install">Install</a> ·
+  <a href="#quick-start">Quick start</a> ·
+  <a href="#guide">Guide</a> ·
+  <a href="#what-gets-scanned">What gets scanned</a> ·
+  <a href="#faq">FAQ</a> ·
+  <a href="#support">Support</a>
+</p>
+
+---
 
 ## What it does
 
-- Lists every attachment in the vault (images, PDFs, audio, video, documents, archives and any other file that isn't a note, Canvas board or base), with search, filters by type and status, and sorting.
-- Shows where each attachment is referenced: in note text, in properties, in Canvas boards and in bases, with the exact syntax and the surrounding line.
-- Finds broken attachment references and suggests existing files that could be the intended target, explaining why each is suggested.
-- Repairs one reference at a time. You review the exact change first, and every repair can be undone.
+- **Shows every attachment** in one searchable list: images, PDFs, audio, video, documents, archives and any other file that isn't a note.
+- **Shows where each one is used.** Notes, properties, Canvas boards and bases all count, and every reference shows its exact text and location.
+- **Finds broken attachment links,** such as an image renamed outside Obsidian or a PDF moved to another folder.
+- **Repairs them one at a time.** It suggests the file you probably meant, shows you the exact change, and only writes after you confirm. Every repair can be undone.
 
-Scanning never changes files. Repairs change only the one reference you reviewed. Attachment files themselves are never renamed, moved or deleted.
+### Safe by design
 
-## Installation
+| | |
+| --- | --- |
+| 🔍 **Scanning never changes files** | Attachment Lens only reads your vault until you choose **Apply repair**. |
+| ✋ **Nothing happens automatically** | No replacement is ever chosen for you. You pick it, review it, then apply it. |
+| 🎯 **One reference per repair** | A repair changes the characters of one link in one file. Everything else stays as it is, down to spacing and line endings. |
+| 🛡️ **Checked before and after writing** | If the note changed since you looked at the preview, nothing is written. After writing, the file is read back to confirm the result. |
+| ↩️ **Undo that survives a restart** | **Undo last repair** puts the original text back, also after you close Obsidian. It refuses if you've edited the file since, so newer work is never overwritten. |
+| 📎 **Attachments are never touched** | No renaming, moving or deleting of attachment files, ever. |
+| 🔒 **Private** | No network requests, no accounts, no telemetry. |
 
-Until it's in the Community plugins directory, install it by hand:
+---
 
-1. Download `main.js`, `manifest.json` and `styles.css` from the release (or build them, see below).
-2. In your vault, create the folder `.obsidian/plugins/attachment-lens/`. If you changed Obsidian's configuration folder, use that instead of `.obsidian`.
-3. Copy the three files into it.
-4. In Obsidian, open **Settings → Community plugins**, reload the list and turn on **Attachment Lens**.
+## Install
 
-Requires Obsidian 1.14.0 or newer on desktop.
+### From Obsidian
 
-## Using it
+1. Open **Settings → Community plugins** and turn off **Restricted mode** if it's on.
+2. Choose **Browse**, search for **Attachment Lens**, and choose **Install**.
+3. Choose **Enable**.
 
-Open the panel with the paperclip icon in the ribbon, or the command **Attachment Lens: Open**. It opens as a tab and can be dragged into a sidebar. In a narrow sidebar the list and the details take turns, with a Back button.
+Attachment Lens needs Obsidian **1.14 or newer** on Windows, macOS or Linux. A mobile version is planned.
 
-1. **Scan vault.** Nothing is read until you start the first scan. Progress is shown, and **Cancel scan** (or Escape) stops it without keeping partial results. After the first scan, results follow your edits, renames and deletions automatically. The results live in memory; after restarting Obsidian, scan again, or turn on **Scan when the panel opens** in the settings.
-2. **Browse.** Filters: **All attachments**, **Broken references**, **No references detected** and **Uncertain references**, plus a type menu and sorting. Search matches file names and vault paths.
-3. **Inspect.** Selecting an attachment shows a preview (images only, loaded on demand), its path, type, size and date, and every reference with its source and location. **Open source** opens the note at that line, or the board or base. **Open in Obsidian** is offered for formats Obsidian opens itself (images, audio, video, PDF).
-4. **Repair.** In **Broken references**, choose **Repair…** on a reference, pick a replacement, choose **Review change**, check the dialog and choose **Apply repair**.
+### By hand
 
-Keyboard: Ctrl/Cmd+F focuses search; arrow keys, Home, End, Page Up and Page Down move through the list; Enter opens the details; Escape goes back. In the replacement list, arrow keys move between candidates.
+1. From the [latest release](https://github.com/jokeroct/attachment-lens/releases/latest), download `main.js`, `manifest.json` and `styles.css`.
+2. In your vault, create the folder `.obsidian/plugins/attachment-lens/` (if you renamed Obsidian's configuration folder, use that instead of `.obsidian`).
+3. Put the three files in it, then in **Settings → Community plugins** reload the list and turn on **Attachment Lens**.
 
-Commands: **Open**, **Scan vault**, **Show broken references**, **Undo last repair**. Attachments also get **Show in Attachment Lens** in the file menu.
+---
+
+## Quick start
+
+### 1. Open the panel and scan
+
+Click the **paperclip** in the left ribbon, or run **Attachment Lens: Open** from the command palette (Ctrl/Cmd+P). The panel opens as a tab. Choose **Scan vault**.
+
+<img src="docs/images/first-scan.png" alt="The panel before the first scan, with the number of notes, boards, bases and attachments it will read" width="760">
+
+The scan reads your notes, properties, Canvas boards and bases. It runs in small steps, so you can keep working, and **Cancel scan** stops it at any time. After the first scan, the results follow your changes automatically.
+
+### 2. Browse your attachments
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/images/overview-dark.png">
+  <img src="docs/images/overview-light.png" alt="The attachment list on the left, and the selected image with its preview, details and three references on the right" width="900">
+</picture>
+
+| Part | What it's for |
+| --- | --- |
+| **Search** | Type part of a file name or folder. Ctrl/Cmd+F jumps here. |
+| **Filters** | **All attachments**, **Broken references**, **No references detected** and **Uncertain references**, each with a live count. |
+| **All types** and **Sort** | Show only images, PDFs, audio, video, documents or archives, and sort by name, folder, size, date or number of references. |
+| **The list** | Every attachment with its folder, size and number of references. Click a row or use the arrow keys. |
+| **Details** | A preview for images, the path (with a copy button), type, size and date, and every place the file is used. **Open source** takes you to the exact line. |
+
+### 3. Fix a broken link
+
+Choose **Broken references**. Each row is a file that's linked somewhere but doesn't exist. Select one, then choose **Repair…** on the reference you want to fix.
+
+<img src="docs/images/suggestions.png" alt="A missing image with two suggested replacements; each suggestion lists why it was suggested" width="900">
+
+Pick the file you meant. Suggestions are ranked by how similar their names and folders are, and each one says why it's there, for example **Same name, .jpg instead of .jpeg**. If the right file isn't listed, search all attachments underneath. When you've chosen, select **Review change**.
+
+<img src="docs/images/review.png" alt="The review dialog: source, location, old and new target, how the link will be written, and the exact change highlighted line by line" width="900">
+
+The review dialog shows exactly what will change, highlighted in context. Nothing is written yet. Choose **Apply repair** to write it, or **Back** to choose another file.
+
+<img src="docs/images/repaired.png" alt="A green banner confirming the repair, with an Undo repair button" width="900">
+
+The banner confirms the repair was checked after writing. Changed your mind? Choose **Undo repair**.
+
+---
+
+## Guide
+
+<details open>
+<summary><b>The four filters</b></summary>
+
+| Filter | Shows |
+| --- | --- |
+| **All attachments** | Every attachment in the vault. |
+| **Broken references** | Links to attachments that don't exist, grouped by the missing file. The count is the number of broken links. |
+| **No references detected** | Attachments that nothing links to, as far as Attachment Lens can see. This doesn't prove a file is unused, because some places (such as HTML tags or plugin code) aren't scanned. See [What gets scanned](#what-gets-scanned). |
+| **Uncertain references** | Plain text that looks like a file name but isn't a link, such as a `banner: dune.jpg` property that a theme reads. |
+
+</details>
+
+<details open>
+<summary><b>How suggestions are chosen</b></summary>
+
+When a link is broken, Attachment Lens compares the missing name with every attachment in the vault. It looks at:
+
+- the **same name in another folder** (the most common cause: the file was moved),
+- the **same name with a different extension**, such as `.jpeg` and `.jpg`,
+- names that match **ignoring case, spaces, dashes and copy numbers** (`photo 1.png`, `photo-copy.png`),
+- **similar names**, such as `results-table-v2` and `results-table-v3`,
+- **folders** shared with the original link, and files **near the note**,
+- whether the file has **no other references**, which often means it's the one that was moved.
+
+Each suggestion shows the reasons that apply. A file of a different type is marked in orange. Similar names are a hint, not proof, so check the preview before you choose.
+
+</details>
+
+<details open>
+<summary><b>The review dialog, line by line</b></summary>
+
+| Line | Meaning |
+| --- | --- |
+| **Source** | The note, board or base that contains the link, and where in it (a line, a property, a Canvas card or a Bases formula). |
+| **Reference** | The kind of link: an embed or link in wikilink or Markdown style, a property, a Canvas card, a Bases function. |
+| **Original target** | What the link points at now, marked **Missing**. |
+| **New target** | The file you chose. |
+| **Written as** | How the new link will be spelled. It keeps your style: a short name stays short, a relative path like `../images/x.png` stays relative, and a full path stays full. If a short name would open a different file with the same name, the full path is used and the dialog tells you why. |
+| **File type** | Whether the type changes, for example from a PDF to an image, which changes how an embed looks. |
+| **The change** | The surrounding lines, with the removed and added characters highlighted. Sizes like `\|400`, captions, aliases and `#page=3` links are kept. |
+| **Checks** | What was confirmed: the file hasn't changed, the new file exists, and the new link opens it. These run again at the moment of writing. |
+
+If a Canvas board or base is open in a tab, close it first: an open board can save over changes made outside it. The dialog tells you when that's needed and has a **Check again** button.
+
+</details>
+
+<details>
+<summary><b>Uncertain references</b></summary>
+
+<img src="docs/images/uncertain.png" alt="The review dialog for a plain-text property, with an extra confirmation checkbox" width="900">
+
+Some values look like file names without being links, such as `banner: dune-cover.jpg` in a note's properties. Obsidian doesn't treat these as links, but a theme or plugin might read them. Attachment Lens lists them as **uncertain** and can repair them too, after you tick **I confirm this property refers to an attachment**.
+
+</details>
+
+<details>
+<summary><b>Undo, and what happens if Obsidian closes mid-repair</b></summary>
+
+- **Undo last repair** is in the toolbar, in the success banner, and in the command palette. It works after restarting Obsidian.
+- Only the **most recent** repair can be undone. A new repair replaces the undo point, and the review dialog tells you which one it replaces.
+- Undo only runs if the file still contains exactly the repaired text. If you've edited it since, undo is refused and both versions of the line are shown, with a **Copy original line** button, so nothing you wrote is lost.
+- If Obsidian closes during a repair, the next start checks the file and tells you whether the repair was applied (undo is then available), wasn't applied, or the file has changed since. This check never edits anything.
+
+</details>
+
+<details>
+<summary><b>Coverage details</b></summary>
+
+<img src="docs/images/coverage.png" alt="Coverage details listing a Canvas board with invalid JSON, and the kinds of content that are never scanned" width="900">
+
+If a file couldn't be read completely, such as a Canvas board with invalid JSON or a base with formulas computed at runtime, an orange banner says so. **Show details** lists each file and what was skipped. That's why files without references are labelled **No references detected in supported sources** and not "unused".
+
+</details>
+
+<details>
+<summary><b>Using it in a sidebar</b></summary>
+
+<img src="docs/images/narrow.png" alt="Attachment Lens docked in the right sidebar, showing an attachment's details with a Back to list button" width="300">
+
+Drag the tab into a sidebar like any other view. In a narrow panel the list and the details take turns: press Enter or click a row to open the details, and **Back to list** (or Escape) to return. From the file explorer, right-click an attachment and choose **Show in Attachment Lens**.
+
+</details>
+
+<details>
+<summary><b>Keyboard</b></summary>
+
+| Key | Does |
+| --- | --- |
+| Ctrl/Cmd+F | Jump to search |
+| ↑ ↓, Home, End, Page Up, Page Down | Move through the list |
+| Enter | Open the details of the selected file |
+| Escape | Close the picker, go back to the list, or close the review dialog without writing |
+| ↑ ↓ in the suggestions | Choose a different file |
+| Tab | Move between buttons, filters and menus |
+
+The review dialog starts with nothing focused, so writing always takes a deliberate Tab to **Apply repair** and Enter.
+
+</details>
+
+<details>
+<summary><b>Commands</b></summary>
+
+| Command | Does |
+| --- | --- |
+| **Attachment Lens: Open** | Opens the panel, or switches to it |
+| **Attachment Lens: Scan vault** | Scans, or scans again |
+| **Attachment Lens: Show broken references** | Opens the panel on the broken links |
+| **Attachment Lens: Undo last repair** | Undoes the most recent repair |
+
+</details>
+
+<details>
+<summary><b>Settings</b></summary>
+
+<img src="docs/images/settings.png" alt="The Attachment Lens settings: excluded folders, number of suggestions, scan when the panel opens, and a Support me on Ko-fi button" width="760">
+
+| Setting | Does |
+| --- | --- |
+| **Excluded folders** | Folders to leave out, one per line, such as `Templates`. Obsidian's configuration folder and `.trash` are always left out. |
+| **Number of suggestions** | How many possible replacements to show, from 3 to 10. |
+| **Scan when the panel opens** | Results are kept in memory, so after restarting Obsidian you scan again. Turn this on to do it automatically. |
+
+</details>
+
+---
 
 ## What gets scanned
 
-| Source | Recognized | Counts as |
+| Where | Examples | Counted as |
 | --- | --- | --- |
-| Notes | `[[photo.png]]`, `![[photo.png\|300]]`, `[[paper.pdf#page=3\|alias]]`, `![](my%20photo.png)`, `![](<my photo.png>)`, reference definitions such as `[fig]: images/fig.png` | Explicit |
-| Properties | `cover: "[[photo.png]]"` and list items with link syntax | Explicit |
-| Properties | Plain text that looks like a file, such as `banner: dune.jpg` | Uncertain |
-| Canvas boards | File cards, group backgrounds, links inside text cards | Explicit |
-| Bases (`.base` files and `base` code blocks in notes) | One static string in `link()`, `file()`, `image()` or `hasLink()` | Explicit |
-| Bases | A quoted `"[[photo.png]]"` elsewhere in an expression | Uncertain |
+| **Notes** | `![[photo.png]]`, `![[photo.png\|300]]`, `[[paper.pdf#page=3\|p. 3]]`, `![](my%20photo.png)`, `![](<my photo.png>)`, `[fig]: images/fig.png` | Links |
+| **Properties** | `cover: "[[photo.png]]"`, and lists of links | Links |
+| **Properties** | Plain text such as `banner: dune.jpg` | Uncertain |
+| **Canvas boards** | File cards, group backgrounds, links in text cards | Links |
+| **Bases** (`.base` files and `base` blocks in notes) | `image("covers/dune.jpg")`, `link("…")`, `file("…")`, `hasLink("…")` | Links |
 
-Links inside code blocks and code spans are ignored, except `base` blocks. Links inside `%% comments %%` count, as they do in Obsidian's own link index. Links to websites and to files outside the vault aren't checked. Links to notes, boards and bases are left to Obsidian.
+Links inside code blocks are ignored, except `base` blocks. Links inside `%% comments %%` count, as they do in Obsidian. Links to notes are left to Obsidian, and links to websites or files outside the vault aren't checked.
 
-A broken link counts as an attachment reference when its target has a known attachment extension (such as `.png`, `.pdf`, `.mp3` or `.zip`). A broken `[[John.Smith]]` is treated as a link to a note.
+**Not scanned:** HTML tags such as `<img src>`, Dataview and Templater code, CSS snippets, other plugins' file formats (such as compressed Excalidraw drawings), nested property objects, and anything a Bases formula computes at runtime.
 
-**Not covered:** HTML tags such as `<img src>`, Dataview and Templater code, CSS snippets, plugin file formats such as compressed Excalidraw drawings, nested property objects, base blocks inside Canvas text cards or callouts, and anything a Bases formula computes at runtime. That's why an attachment without references is described as **No references detected in supported sources**, not as unused. When a source couldn't be read completely (invalid JSON, invalid YAML, expressions that weren't evaluated, notes Obsidian hadn't indexed yet), the panel says so and lists the files under **Coverage details**.
+---
 
-![Choosing a replacement for a missing image](docs/screenshots/D-broken-with-suggestions-dark.png)
+## FAQ
 
-## How repairs work
+<details>
+<summary><b>Will it delete my unused attachments?</b></summary>
 
-Suggestions are ranked by file name, extension and folder similarity, and each one lists its reasons ("Same name, .jpg instead of .jpeg", "Near the source", "Different format: WebP"). Nothing is selected for you, and a similar name doesn't mean it's the right file. You can also search all attachments.
+No. Attachment Lens never deletes, moves or renames attachments. It shows which files have no detected references, so you can decide for yourself.
 
-The review dialog shows the source and location, the original and new target, how the new link will be written, any change of file type, and the exact change with the surrounding lines. The link keeps its form: a short name stays a short name unless that would open a different file with the same name, a relative path stays relative, and a full path stays full. Aliases, sizes, captions, subpaths such as `#page=3`, angle brackets, URL encoding, YAML quoting and JSON escaping are kept, and nothing else in the file changes.
+</details>
 
-When you choose **Apply repair**:
+<details>
+<summary><b>What exactly changes when I repair a link?</b></summary>
 
-1. The file is read again and must match the text the preview was built from. A note open in an editor must have no unsaved changes, and a Canvas board or base must not be open in a tab, because those can save over outside changes.
-2. The replacement must still exist, and the new link must open it from that source, using Obsidian's own link resolution.
-3. An undo point is saved to the plugin's data before anything is written.
-4. The change is written with Obsidian's atomic `Vault.process`, which compares the text one last time.
-5. The file is read back and must contain exactly the expected result, and the new link is checked against Obsidian's index.
+Only the target inside that one link. For `![[kyoto-temple.jpeg|400]]` becoming `![[kyoto-temple.jpg|400]]`, the change is the `e` in `.jpeg`. The rest of the note, its properties, spacing and line endings stay byte-for-byte the same, and the review dialog shows you exactly that before anything is written.
 
-![The review dialog with the exact change](docs/screenshots/E-review-light.png)
+</details>
 
-If the file changed after the preview, nothing is written and you're asked to refresh the preview. Uncertain references need one extra confirmation.
+<details>
+<summary><b>What if I edit the note while the review dialog is open?</b></summary>
 
-## Undo and recovery
+Attachment Lens notices, writes nothing, and asks you to refresh the preview. The same happens if the file you chose is deleted in the meantime, or if a note has edits that haven't been saved yet.
 
-**Undo last repair** (toolbar, success banner or command) restores the previous text, also after restarting Obsidian. Only one undo point is kept: a new successful repair replaces it, and the review dialog tells you which one it replaces.
+</details>
 
-Undo only runs when the file still matches the repaired version exactly. If it changed since, undo is refused and both versions of the line are shown, so you can fix it by hand. It never overwrites newer edits.
+<details>
+<summary><b>Why isn't a broken link listed?</b></summary>
 
-If Obsidian closes during a repair, the next start compares the file with the saved undo point and reports whether the repair was not applied, applied (undo is then available) or the file has changed since. Recovery never edits files.
+Broken links to notes are left to Obsidian. A broken link counts as an attachment link when its target has an attachment extension such as `.png`, `.pdf` or `.mp3`. A broken `[[John.Smith]]` is treated as a link to a note.
 
-## Privacy
+</details>
 
-No network requests, no telemetry, no accounts. The plugin stores its settings and the single undo point in its `data.json`. The undo point holds the file path, the replaced characters, the new characters, the line before and after, and SHA-256 fingerprints of the file before and after the repair.
+<details>
+<summary><b>Does it work with Obsidian Sync or other sync tools?</b></summary>
 
-## Settings
+Repairs are ordinary edits made through Obsidian, so sync picks them up like any other change you make. The undo point is stored in the plugin's own settings file, and undo always checks the file first, so an undo point that arrives from another device is never applied over different text.
 
-- **Excluded folders**: one per line. The configuration folder and `.trash` are always skipped.
-- **Number of suggestions**: 3 to 10, default 5.
-- **Scan when the panel opens**: off by default.
+</details>
 
-## Development
+<details>
+<summary><b>Does it work on phones and tablets?</b></summary>
+
+Not yet. Version 1.0 is for desktop. A mobile version is planned.
+
+</details>
+
+<details>
+<summary><b>Does it send my data anywhere?</b></summary>
+
+No. It makes no network requests and has no accounts or telemetry. Its settings file stores your settings and one undo point: the file path, the few characters that changed, and fingerprints of the file before and after.
+
+</details>
+
+---
+
+## Support
+
+Attachment Lens is free and open source. If it saves you time, you can support its development:
+
+<a href="https://ko-fi.com/mdsama"><img src="https://ko-fi.com/img/githubbutton_sm.svg" alt="Support me on Ko-fi"></a>
+
+Found a bug or have an idea? [Open an issue](https://github.com/jokeroct/attachment-lens/issues). It helps to include the steps, your Obsidian version, and the text of the link involved.
+
+---
+
+<details>
+<summary><b>For developers</b></summary>
 
 ```bash
 npm install
 npm run check      # type check, lint, unit and integration tests, production build
 npm run dev        # rebuild main.js on change
-npm run package    # dist/attachment-lens-0.1.0/ and a .zip for manual installation
+npm run package    # dist/attachment-lens-<version>/ and a .zip for manual installation
 ```
 
-Tests use the fixture vault in `test-vault/`. `npm run fixtures` regenerates its binary attachments.
+- `src/core` holds the parsing, link resolution, suggestion ranking and repair planning, with no Obsidian imports. `src/obsidian` adapts it to Obsidian's API, and `src/ui` is the panel and dialogs.
+- Tests use the fixture vault in `test-vault/`. `npm run fixtures` regenerates its binary attachments.
+- Native checks run inside Obsidian through a dev-only harness plugin in `dev/harness/`, which is never shipped: `node scripts/dev-test.mjs --vault "path/to/a/test vault"`. The script copies the fixtures in, runs the checks, saves results to `.dev-results/` and removes what it added.
+- The screenshots and GIF come from `docs/demo-vault/`: `node scripts/dev-test.mjs --vault "…" --fixtures docs/demo-vault docs`, then `node scripts/make-docs-media.mjs`.
 
-Native checks run inside Obsidian through a dev-only harness plugin in `dev/harness/`, which is never packaged:
+See [docs/VERIFICATION.md](docs/VERIFICATION.md) for what has been tested.
 
-```bash
-node scripts/dev-test.mjs --vault "path/to/a/test vault"
-```
-
-The test vault must already be in Obsidian's vault list with community plugins allowed. The script copies the fixtures in, runs the checks, saves results and screenshots to `.dev-results/` and removes what it added. It refuses to run if the vault already has folders with the fixtures' names.
-
-Code layout: `src/core` holds pure parsing, resolution, ranking and repair planning with no Obsidian imports; `src/obsidian` adapts it to Obsidian's API; `src/ui` is the view and dialogs.
+</details>
 
 ## License
 
-MIT. See [LICENSE](LICENSE).
+[MIT](LICENSE) © 2026 MON.D.SAMA

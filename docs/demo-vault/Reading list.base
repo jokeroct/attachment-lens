@@ -1,0 +1,5 @@
+formulas:
+  cover: image("Attachments/Covers/dune-cover.jpeg")
+views:
+  - type: cards
+    name: Books

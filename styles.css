@@ -51,6 +51,15 @@
 	flex-basis: 100%;
 }
 
+.al-narrow .al-filters .al-spacer {
+	display: none;
+}
+
+.al-narrow .al-filters .dropdown {
+	flex: 1 1 0;
+	min-width: 0;
+}
+
 /* Banners */
 
 .al-banners:empty {
@@ -998,4 +1007,18 @@ button.al-chip.is-active {
 .al-kofi-button .al-kofi-icon svg {
 	width: var(--icon-s);
 	height: var(--icon-s);
+}
+
+/* Text for screen readers only */
+
+.al-sr-only {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	margin: -1px;
+	padding: 0;
+	overflow: hidden;
+	clip: rect(0 0 0 0);
+	white-space: nowrap;
+	border: 0;
 }

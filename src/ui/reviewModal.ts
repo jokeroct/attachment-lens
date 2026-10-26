@@ -4,7 +4,7 @@ import { parseMarkdownLink, parseReferenceDefinition, parseWikilink } from "../c
 import type { DiffLine } from "../core/repair/plan";
 import type { ApplyResult, RepairPlan } from "../obsidian/repairService";
 import { formLabel } from "../obsidian/labels";
-import { banner, button, code } from "./dom";
+import { banner, button, code, srLabel, srText } from "./dom";
 import { formatAgo, icon } from "./format";
 
 export interface ReviewHandlers {
@@ -37,10 +37,12 @@ function keptParts(plan: RepairPlan): string[] {
 }
 
 function renderDiff(parent: HTMLElement, lines: DiffLine[]): void {
-	const el = parent.createDiv({ cls: "al-diff", attr: { role: "group", "aria-label": "Exact change" } });
+	const el = parent.createDiv({ cls: "al-diff", attr: { role: "group" } });
+	srLabel(el, "Exact change");
 	for (const line of lines) {
 		const row = el.createDiv({ cls: ["al-diff-line", line.sign === "-" ? "is-removed" : line.sign === "+" ? "is-added" : "is-context"] });
-		row.createSpan({ cls: "al-diff-sign", text: line.sign === " " ? "" : line.sign === "-" ? "−" : "+", attr: { "aria-label": line.sign === "-" ? "Removed" : line.sign === "+" ? "Added" : "" } });
+		row.createSpan({ cls: "al-diff-sign", text: line.sign === " " ? "" : line.sign === "-" ? "−" : "+", attr: { "aria-hidden": "true" } });
+		if (line.sign !== " ") srText(row, line.sign === "-" ? "Removed: " : "Added: ");
 		row.createSpan({ cls: "al-diff-no", text: String(line.no) });
 		const text = row.createSpan({ cls: "al-diff-text" });
 		if (line.mark && line.mark[1] > line.mark[0]) {
@@ -131,7 +133,8 @@ export class ReviewModal extends Modal {
 			banner(el, "info", icon("info"), `This definition is used ${plan.ref.usages ?? 0} times in this note`, "Every use of it will open the new file.");
 		}
 
-		const checks = el.createEl("ul", { cls: "al-checks", attr: { "aria-label": "Checks" } });
+		const checks = el.createEl("ul", { cls: "al-checks" });
+		srLabel(checks, "Checks");
 		for (const text of [
 			"The file matches the text this preview was built from",
 			`${plan.targetPath} exists`,
