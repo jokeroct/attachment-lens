@@ -4,8 +4,6 @@ See where your attachments are used, find broken attachment links, and repair th
 
 Attachment Lens is a free, open-source plugin for [Obsidian](https://obsidian.md). Version 0.1.0 is desktop only and isn't in the Community plugins directory yet.
 
-> **Before publishing:** the author is still the placeholder `REPLACE_WITH_AUTHOR` in `manifest.json`, `package.json` and `LICENSE`. See [docs/SUBMISSION.md](docs/SUBMISSION.md).
-
 ![Attachment Lens showing an attachment and the places it is used](docs/screenshots/C-attachment-details-light.png)
 
 ## What it does

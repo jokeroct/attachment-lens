@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "description": "See where attachments are used, find broken attachment links, and repair them one reference at a time after reviewing the exact change.",
-  "author": "REPLACE_WITH_AUTHOR",
+  "author": "MON.D.SAMA",
   "license": "MIT",
   "main": "main.js",
   "scripts": {
