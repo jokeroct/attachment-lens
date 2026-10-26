@@ -150,6 +150,8 @@ export default class AttachmentLensPlugin extends Plugin {
 			await leaf.setViewState({ type: VIEW_TYPE, active: true });
 		}
 		await workspace.revealLeaf(leaf);
+		// A tab Obsidian hasn't shown since startup holds a placeholder until it's loaded.
+		await leaf.loadIfDeferred();
 		const view = leaf.view instanceof AttachmentLensView ? leaf.view : null;
 		if (view && filter) view.showFilter(filter);
 		return view;

@@ -44,6 +44,11 @@ interface PickerState {
 	query: string;
 }
 
+/** Reference ids contain a NUL separator, which CSS selectors can't match; this form can. */
+function repairKey(refId: string): string {
+	return encodeURIComponent(refId).replace(/[^A-Za-z0-9%_.-]/g, (ch) => `%${ch.charCodeAt(0).toString(16)}`);
+}
+
 function isFilter(v: unknown): v is FilterId {
 	return FILTERS.some((f) => f.id === v);
 }
@@ -156,7 +161,11 @@ export class AttachmentLensView extends ItemView {
 	showFilter(filter: FilterId): void {
 		this.viewState = { ...this.viewState, filter, category: "all", search: "", selected: null };
 		this.searchBox?.setValue("");
+		this.picker = null;
+		this.showCoverage = false;
 		this.render(true);
+		// Like clicking a filter: select the first row so the details aren't empty.
+		this.refreshList(true);
 		this.list?.focus();
 	}
 
@@ -383,7 +392,7 @@ export class AttachmentLensView extends ItemView {
 				const refId = this.picker.refId;
 				this.picker = null;
 				this.renderDetails();
-				this.detailsPane?.querySelector<HTMLElement>(`[data-repair="${CSS.escape(refId)}"]`)?.focus();
+				this.detailsPane?.querySelector<HTMLElement>(`[data-repair="${repairKey(refId)}"]`)?.focus();
 				return;
 			}
 			this.closeDetails();
@@ -729,7 +738,7 @@ export class AttachmentLensView extends ItemView {
 		const actions = card.createDiv({ cls: "al-actions" });
 		if (repairable && !ref.blocked && this.picker?.refId !== ref.id) {
 			const repair = button(actions, "Repair…", { icon: icon("wrench") });
-			repair.dataset.repair = ref.id;
+			repair.dataset.repair = repairKey(ref.id);
 			repair.addEventListener("click", () => {
 				this.picker = { refId: ref.id, target: null, query: "" };
 				this.renderDetails();
@@ -865,7 +874,7 @@ export class AttachmentLensView extends ItemView {
 		button(foot, "Cancel").addEventListener("click", () => {
 			this.picker = null;
 			this.renderDetails();
-			this.detailsPane?.querySelector<HTMLElement>(`[data-repair="${CSS.escape(ref.id)}"]`)?.focus();
+			this.detailsPane?.querySelector<HTMLElement>(`[data-repair="${repairKey(ref.id)}"]`)?.focus();
 		});
 		const review = button(foot, "Review change", { cta: true, disabled: true });
 		review.addEventListener("click", () => {
@@ -907,7 +916,14 @@ export class AttachmentLensView extends ItemView {
 			this.lastSelectedIndex = selectedIndex;
 			this.render(true);
 			this.list?.focus();
+			return;
 		}
+		// Back in the picker: put focus where the dialog was opened from, so Escape keeps working here.
+		window.setTimeout(() => {
+			const pane = this.detailsPane;
+			const target = pane?.querySelector<HTMLElement>(".al-picker-foot .mod-cta:not(:disabled)") ?? pane?.querySelector<HTMLElement>(".al-candidate[tabindex='0']") ?? this.list?.el;
+			target?.focus();
+		}, 0);
 	}
 
 	private renderCoverage(pane: HTMLElement): void {

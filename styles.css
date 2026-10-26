@@ -185,6 +185,11 @@ button.al-chip {
 	cursor: pointer;
 }
 
+button.al-chip:focus-visible {
+	outline: none;
+	box-shadow: 0 0 0 2px var(--background-modifier-border-focus);
+}
+
 button.al-chip:hover {
 	background-color: var(--background-modifier-hover);
 	color: var(--text-normal);

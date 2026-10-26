@@ -191,7 +191,10 @@ export class ReviewModal extends Modal {
 		});
 		update();
 		apply.addEventListener("click", () => void this.apply());
-		window.setTimeout(() => (confirm ?? apply).focus(), 0);
+		// Start on the dialog itself, not on Apply, so writing always takes a deliberate Tab and Enter.
+		// An uncertain reference starts on its confirmation box, which is needed first anyway.
+		el.setAttribute("tabindex", "-1");
+		window.setTimeout(() => (confirm ?? el).focus(), 0);
 	}
 
 	private async refresh(): Promise<void> {
