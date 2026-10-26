@@ -1,0 +1,1 @@
+Plain text attachment used by the Attachment Lens fixtures.

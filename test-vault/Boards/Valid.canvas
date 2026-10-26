@@ -1,0 +1,14 @@
+{
+	"nodes":[
+		{"id":"g1","type":"group","label":"Day 3","background":"Travel/attachments/bamboo-grove.png","backgroundStyle":"cover","x":-40,"y":-40,"width":900,"height":820},
+		{"id":"a1b2","type":"file","file":"Assets/2024/kyoto-temple.jpg","x":0,"y":0,"width":400,"height":300},
+		{"id":"n7f2","type":"file","file":"Research/old/fig-3.png","x":420,"y":0,"width":400,"height":300},
+		{"id":"p9","type":"file","file":"Research/Papers/attention-is-all-you-need.pdf","subpath":"#page=3","x":0,"y":320,"width":400,"height":400},
+		{"id":"t1","type":"text","text":"## Notes\nSee ![[my photo 1.png|200]] and [the \"budget\"](Finance/budget-2025.xlsx).\nBroken: ![[gone-photo.png]]","x":900,"y":0,"width":300,"height":200},
+		{"id":"n1","type":"file","file":"Welcome.md","x":900,"y":300,"width":300,"height":200},
+		{"id":"l1","type":"link","url":"https://obsidian.md","x":900,"y":600,"width":300,"height":200}
+	],
+	"edges":[
+		{"id":"e1","fromNode":"a1b2","fromSide":"right","toNode":"n7f2","toSide":"left"}
+	]
+}

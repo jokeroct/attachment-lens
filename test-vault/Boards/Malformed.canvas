@@ -1,0 +1,5 @@
+{
+	"nodes":[
+		{"id":"x1","type":"file","file":"Assets/2024/cover.png","x":0,"y":0,"width":400,"height":300},
+	]
+}

@@ -1,0 +1,16 @@
+filters:
+  and:
+    - file.hasLink("attention-is-all-you-need.pdf")
+    - 'file.ext == "md"'
+formulas:
+  thumb: image("Assets/2024/kyoto-temple.jpg")
+  hero: image("hero-old.png")
+  doc: link("[[report.docx]]")
+  sheet: file("Finance/budget-2025.xlsx")
+  remote: image("https://obsidian.md/images/logo.png")
+views:
+  - type: table
+    name: Papers
+    filters:
+      and:
+        - file.hasLink("diagram-old.svg")

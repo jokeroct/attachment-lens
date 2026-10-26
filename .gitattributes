@@ -1,0 +1,15 @@
+* text=auto eol=lf
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.pdf binary
+*.mp3 binary
+*.m4a binary
+*.mp4 binary
+*.zip binary
+*.xlsx binary
+*.docx binary
+*.xyz binary
+# Kept byte-for-byte: this fixture checks that Windows line endings survive a repair.
+test-vault/Links/Windows* -text

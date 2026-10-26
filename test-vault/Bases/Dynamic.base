@@ -1,0 +1,6 @@
+filters: file.inFolder("Reading")
+formulas:
+  thumb: image(cover_dir + "/" + file.name + ".png")
+  cover: image(note.cover)
+  self: file.hasLink(this.file)
+  wiki: 'if(banner == "[[banner-dune.jpg]]", "yes", "no")'

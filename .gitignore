@@ -1,0 +1,11 @@
+# Dependencies and build output
+node_modules/
+main.js
+*.map
+dist/
+
+# Local Obsidian test vault, generated from test-vault/ by scripts/dev-test.mjs
+.dev-vault/
+
+# Plugin data written when testing by hand
+data.json

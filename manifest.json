@@ -1,0 +1,9 @@
+{
+  "id": "attachment-lens",
+  "name": "Attachment Lens",
+  "version": "0.1.0",
+  "minAppVersion": "1.14.0",
+  "description": "See where attachments are used, find broken attachment links, and repair them one at a time after reviewing the exact change.",
+  "author": "REPLACE_WITH_AUTHOR",
+  "isDesktopOnly": true
+}
